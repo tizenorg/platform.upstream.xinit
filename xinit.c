@@ -25,7 +25,7 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
-/* $XFree86: xc/programs/xinit/xinit.c,v 3.32 2002/05/31 18:46:13 dawes Exp $ */
+/* $XFree86: xc/programs/xinit/xinit.c,v 3.33 2003/06/10 17:03:56 dawes Exp $ */
 
 #include <X11/Xlib.h>
 #include <X11/Xos.h>
