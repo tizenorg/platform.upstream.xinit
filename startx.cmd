@@ -1,5 +1,5 @@
 /* OS/2 REXX */
-/* $XFree86$
+/* $XFree86: xc/programs/xinit/startx.cmd,v 3.4 2003/11/12 00:10:31 dawes Exp $
  * 
  * This is just a sample implementation of a slightly less primitive 
  * interface than xinit.  It looks for user xinitrc.cmd and xservrc.cmd
