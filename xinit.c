@@ -25,24 +25,51 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
+/* $XFree86: xc/programs/xinit/xinit.c,v 3.32 2002/05/31 18:46:13 dawes Exp $ */
 
 #include <X11/Xlib.h>
 #include <X11/Xos.h>
-#include <X11/Xmu/SysUtil.h>
 #include <stdio.h>
 #include <ctype.h>
+
+#ifdef X_POSIX_C_SOURCE
+#define _POSIX_C_SOURCE X_POSIX_C_SOURCE
 #include <signal.h>
+#undef _POSIX_C_SOURCE
+#else
+#if defined(X_NOT_POSIX) || defined(_POSIX_SOURCE)
+#include <signal.h>
+#else
+#define _POSIX_SOURCE
+#include <signal.h>
+#undef _POSIX_SOURCE
+#endif
+#endif
+
 #ifndef SYSV
 #include <sys/wait.h>
 #endif
 #include <errno.h>
 #include <setjmp.h>
+#include <stdarg.h>
 
-#ifndef X_NOT_STDC_ENV
-#include <stdlib.h>
-#else
-extern char *getenv();
+#if !defined(SIGCHLD) && defined(SIGCLD)
+#define SIGCHLD SIGCLD
 #endif
+#ifdef __UNIXOS2__
+#define INCL_DOSMODULEMGR
+#include <os2.h>
+#define setpgid(a,b)
+#define setuid(a)
+#define setgid(a)
+#define SHELL "cmd.exe"
+#define XINITRC "xinitrc.cmd"
+#define XSERVERRC "xservrc.cmd"
+char **envsave;	/* to circumvent an UNIXOS2 problem */
+#define environ envsave
+#endif
+
+#include <stdlib.h>
 extern char **environ;
 char **newenviron = NULL;
 
@@ -62,6 +89,16 @@ char **newenviron = NULL;
    Per Posix, only setsid should do that. */
 #if !defined(X_NOT_POSIX) && !defined(macII)
 #define setpgrp setpgid
+#endif
+
+#ifdef __UNIXOS2__
+#define HAS_EXECVPE
+#endif
+
+#ifdef HAS_EXECVPE
+#define Execvpe(path, argv, envp) execvpe(path, argv, envp)
+#else
+#define Execvpe(path, argv, envp) execvp(path, argv)
 #endif
 
 char *bindir = BINDIR;
@@ -84,19 +121,14 @@ char *server_names[] = {
     "XmacII      Apple monochrome display on Macintosh II",
 #endif
 #ifdef XFREE86
-    "XF86_SVGA   SVGA color display on i386 PC",
-    "XF86_Mono   monochrome display on i386 PC",
-    "XF86_VGA16  16 color VGA display on i386 PC",
-    "XF86_S3     S3 color display on i386 PC",
-    "XF86_8514   IBM 8514/A color display on i386 PC",
-    "XF86_Mach8  ATI Mach8 color display on i386 PC",
-    "XF86_Mach32 ATI Mach32 color display on i386 PC",
-    "XF86_Mach64 ATI Mach64 color display on i386 PC",
-    "XF86_P9000  Weitek P9000 color display on i386 PC",
-    "XF86_AGX    IIT AGX color display on i386 PC",
-    "XF86_W32    Tseng ET4000/W32 color display on i386 PC",
-    "XF86_I128   #9 I128 color display on i386 PC",
+    "XFree86     XFree86 displays",
 #endif
+#ifdef __DARWIN__
+    "XDarwin         Darwin/Mac OS X IOKit displays",
+    "XDarwinQuartz   Mac OS X Quartz displays",
+    "XDarwinStartup  Auto-select between XDarwin and XDarwinQuartz",
+#endif
+    
     NULL};
 
 #ifndef XINITRC
@@ -125,7 +157,7 @@ char *displayNum;
 char *program;
 Display *xd;			/* server connection */
 #ifndef SYSV
-#if defined(SVR4) || defined(_POSIX_SOURCE) || defined(CSRG_BASED)
+#if defined(__CYGWIN__) || defined(SVR4) || defined(_POSIX_SOURCE) || defined(CSRG_BASED) || defined(__UNIXOS2__) || defined(Lynx)
 int status;
 #else
 union wait	status;
@@ -133,14 +165,21 @@ union wait	status;
 #endif /* SYSV */
 int serverpid = -1;
 int clientpid = -1;
-
-#ifdef X_NOT_STDC_ENV
-extern int errno;
+#ifndef X_NOT_POSIX
+volatile int gotSignal = 0;
 #endif
 
+static void Execute ( char **vec, char **envp );
+static Bool waitforserver ( void );
+static Bool processTimeout ( int timeout, char *string );
+static int startServer ( char *server[] );
+static int startClient ( char *client[] );
+static int ignorexio ( Display *dpy );
+static void shutdown ( void );
+static void set_environment ( void );
+static void Fatal(char *msg);
+static void Error ( char *fmt, ... );
 
-static void shutdown();
-static void set_environment();
 
 #ifdef SIGNALRETURNSINT
 #define SIGVAL int
@@ -148,50 +187,74 @@ static void set_environment();
 #define SIGVAL void
 #endif
 
-SIGVAL sigCatch(sig)
-	int	sig;
+#ifdef X_NOT_POSIX
+/* Can't use Error() in signal handlers */
+#ifndef STDERR_FILENO
+#define WRITES(s) write(STDERR_FILENO, (s), strlen(s))
+#else
+#define WRITES(s) write(fileno(stderr), (s), strlen(s))
+#endif
+#endif
+
+static SIGVAL 
+sigCatch(int sig)
 {
+#ifdef X_NOT_POSIX
+	char buf[1024];
+
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGINT, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
-	Error("unexpected signal %d\r\n", sig);
+	snprintf(buf, sizeof buf, "%s: unexpected signal %d\r\n", 
+		 program, sig);
+	WRITES(buf);
 	shutdown();
-	exit(1);
+	_exit(ERR_EXIT);
+#else
+	/* On system with POSIX signals, just interrupt the system call */
+	gotSignal = sig;
+#endif
 }
 
-SIGVAL sigAlarm(sig)
-	int sig;
+static SIGVAL 
+sigAlarm(int sig)
 {
-#if defined(SYSV) || defined(SVR4) || defined(linux)
+#if defined(SYSV) || defined(SVR4) || defined(linux) || defined(__UNIXOS2__)
 	signal (sig, sigAlarm);
 #endif
 }
 
-SIGVAL
-sigUsr1(sig)
-	int sig;
+static SIGVAL
+sigUsr1(int sig)
 {
-#if defined(SYSV) || defined(SVR4) || defined(linux)
+#if defined(SYSV) || defined(SVR4) || defined(linux) || defined(__UNIXOS2__)
 	signal (sig, sigUsr1);
 #endif
 }
 
-static void Execute (vec)
-    char **vec;				/* has room from up above */
+static void 
+Execute(char **vec,		/* has room from up above */
+	char **envp)
 {
-    execvp (vec[0], vec);
+    Execvpe (vec[0], vec, envp);
+#ifndef __UNIXOS2__
     if (access (vec[0], R_OK) == 0) {
 	vec--;				/* back it up to stuff shell in */
 	vec[0] = SHELL;
-	execvp (vec[0], vec);
+	Execvpe (vec[0], vec, envp);
     }
+#endif
     return;
 }
 
-main(argc, argv)
-int argc;
-register char **argv;
+#ifndef __UNIXOS2__
+int
+main(int argc, char *argv[])
+#else
+int
+main(int argc, char *argv[], char *envp[])
+#endif
 {
 	register char **sptr = server;
 	register char **cptr = client;
@@ -200,15 +263,43 @@ register char **argv;
 	int client_given = 0, server_given = 0;
 	int client_args_given = 0, server_args_given = 0;
 	int start_of_client_args, start_of_server_args;
+#ifndef X_NOT_POSIX
+	struct sigaction sa;
+#endif
 
+#ifdef __UNIXOS2__
+	envsave = envp;	/* circumvent an EMX problem */
+
+	/* Check whether the system will run at all */
+	if (_emx_rev < 50) {
+		APIRET rc;
+		HMODULE hmod;
+		char name[CCHMAXPATH];
+		char fail[9];
+		fputs ("This program requires emx.dll revision 50 (0.9c) "
+			"or later.\n", stderr);
+		rc = DosLoadModule (fail, sizeof (fail), "emx", &hmod);
+		if (rc == 0) {
+			rc = DosQueryModuleName (hmod, sizeof (name), name);
+			if (rc == 0)
+				fprintf (stderr, "Please delete or update `%s'.\n", name);
+			DosFreeModule (hmod);
+		}
+		exit (2);
+	}
+#endif
 	program = *argv++;
 	argc--;
-
 	/*
 	 * copy the client args.
 	 */
 	if (argc == 0 ||
+#ifndef __UNIXOS2__
 	    (**argv != '/' && **argv != '.')) {
+#else
+	    (**argv != '/' && **argv != '\\' && **argv != '.' &&
+	     !(isalpha(**argv) && (*argv)[1]==':'))) {
+#endif
 		for (ptr = default_client; *ptr; )
 			*cptr++ = *ptr++;
 #ifdef sun
@@ -239,8 +330,19 @@ register char **argv;
 	 * Copy the server args.
 	 */
 	if (argc == 0 ||
+#ifndef __UNIXOS2__
 	    (**argv != '/' && **argv != '.')) {
 		*sptr++ = default_server;
+#else
+	    (**argv != '/' && **argv != '\\' && **argv != '.' &&
+	     !(isalpha(**argv) && (*argv)[1]==':'))) {
+		*sptr = getenv("XSERVER");
+		if (!*sptr) {
+			Error("No XSERVER environment variable set");
+			exit(1);
+		}
+		*sptr++;
+#endif
 	} else {
 		server_given = 1;
 		*sptr++ = *argv++;
@@ -321,16 +423,36 @@ register char **argv;
 	/*
 	 * Start the server and client.
 	 */
+#ifdef SIGCHLD
+	signal(SIGCHLD, SIG_DFL);	/* Insurance */
+#endif
+#ifdef X_NOT_POSIX
 	signal(SIGQUIT, sigCatch);
 	signal(SIGINT, sigCatch);
 	signal(SIGHUP, sigCatch);
 	signal(SIGPIPE, sigCatch);
+#else
+	/* Let those signal interrupt the wait() call in the main loop */
+	memset(&sa, 0, sizeof sa);
+	sa.sa_handler = sigCatch;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;	/* do not set SA_RESTART */
+	
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGPIPE, &sa, NULL);
+#endif
 	signal(SIGALRM, sigAlarm);
 	signal(SIGUSR1, sigUsr1);
 	if (startServer(server) > 0
 	 && startClient(client) > 0) {
 		pid = -1;
-		while (pid != clientpid && pid != serverpid)
+		while (pid != clientpid && pid != serverpid
+#ifndef X_NOT_POSIX
+		       && gotSignal == 0
+#endif
+			)
 			pid = wait(NULL);
 	}
 	signal(SIGQUIT, SIG_IGN);
@@ -339,7 +461,12 @@ register char **argv;
 	signal(SIGPIPE, SIG_IGN);
 
 	shutdown();
-
+#ifndef X_NOT_POSIX
+	if (gotSignal != 0) {
+		Error("unexpected signal %d.\n", gotSignal);
+		exit(ERR_EXIT);
+	}
+#endif
 	if (serverpid < 0 )
 		Fatal("Server error.\n");
 	if (clientpid < 0)
@@ -351,8 +478,8 @@ register char **argv;
 /*
  *	waitforserver - wait for X server to start up
  */
-
-waitforserver()
+static Bool
+waitforserver(void)
 {
 	int	ncycles	 = 120;		/* # of cycles to wait */
 	int	cycles;			/* Wait cycle count */
@@ -376,21 +503,20 @@ waitforserver()
 /*
  * return TRUE if we timeout waiting for pid to exit, FALSE otherwise.
  */
-processTimeout(timeout, string)
-	int	timeout;
-	char	*string;
+static Bool
+processTimeout(int timeout, char *string)
 {
 	int	i = 0, pidfound = -1;
 	static char	*laststring;
 
 	for (;;) {
-#ifdef SYSV
+#if defined(SYSV) || defined(__UNIXOS2__)
 		alarm(1);
 		if ((pidfound = wait(NULL)) == serverpid)
 			break;
 		alarm(0);
 #else /* SYSV */
-#if defined(SVR4) || defined(_POSIX_SOURCE)
+#if defined(SVR4) || defined(_POSIX_SOURCE) || defined(Lynx)
 		if ((pidfound = waitpid(serverpid, &status, WNOHANG)) == serverpid)
 			break;
 #else
@@ -415,12 +541,33 @@ processTimeout(timeout, string)
 	return( serverpid != pidfound );
 }
 
-startServer(server)
-	char *server[];
+static int
+startServer(char *server[])
 {
-	serverpid = vfork();
+#if !defined(X_NOT_POSIX)
+	sigset_t mask, old;
+#else
+	int old;
+#endif
+
+#if !defined(X_NOT_POSIX)
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGUSR1);
+	sigprocmask(SIG_BLOCK, &mask, &old);
+#else
+	old = sigblock (sigmask (SIGUSR1));
+#endif
+	serverpid = fork(); 
+
 	switch(serverpid) {
 	case 0:
+		/* Unblock */
+#ifndef X_NOT_POSIX
+		sigprocmask(SIG_SETMASK, &old, NULL);
+#else
+		sigsetmask (old);
+#endif
+
 		/*
 		 * don't hang on read/write to control tty
 		 */
@@ -440,9 +587,10 @@ startServer(server)
 		 * prevent server from getting sighup from vhangup()
 		 * if client is xterm -L
 		 */
+#ifndef __UNIXOS2__
 		setpgrp(0,getpid());
-
-		Execute (server);
+#endif
+		Execute (server, environ);
 		Error ("no server \"%s\" in PATH\n", server[0]);
 		{
 		    char **cpp;
@@ -487,8 +635,16 @@ startServer(server)
 		 * you can easily adjust this value.
 		 */
 		alarm (15);
-		pause ();
+
+#ifndef X_NOT_POSIX
+		sigsuspend(&old);
 		alarm (0);
+		sigprocmask(SIG_SETMASK, &old, NULL);
+#else
+		sigpause (old);
+		alarm (0);
+		sigsetmask (old);
+#endif
 
 		if (waitforserver() == 0) {
 			Error("unable to connect to X server\r\n");
@@ -501,41 +657,47 @@ startServer(server)
 	return(serverpid);
 }
 
-startClient(client)
-	char *client[];
+static int
+startClient(char *client[])
 {
 	if ((clientpid = vfork()) == 0) {
 		setuid(getuid());
 		setpgrp(0, getpid());
 		environ = newenviron;
-		Execute (client);
+#ifdef __UNIXOS2__
+#undef environ
+		environ = newenviron;
+		client[0] = (char*)__XOS2RedirRoot(client[0]);
+#endif
+		Execute (client,newenviron);
 		Error ("no program named \"%s\" in PATH\r\n", client[0]);
 		fprintf (stderr,
 "\nSpecify a program on the command line or make sure that %s\r\n", bindir);
 		fprintf (stderr,
 "is in your path.\r\n");
 		fprintf (stderr, "\n");
-		exit (ERR_EXIT);
+		_exit (ERR_EXIT);
 	}
 	return (clientpid);
 }
 
-#if !defined(X_NOT_POSIX) || defined(SYSV)
+#if !defined(X_NOT_POSIX) || defined(SYSV) || defined(__UNIXOS2__)
 #define killpg(pgrp, sig) kill(-(pgrp), sig)
 #endif
 
 static jmp_buf close_env;
 
-static int ignorexio (dpy)
-    Display *dpy;
+static int 
+ignorexio(Display *dpy)
 {
     fprintf (stderr, "%s:  connection to X server lost.\r\n", program);
     longjmp (close_env, 1);
     /*NOTREACHED*/
+    return 0;
 }
 
-static
-void shutdown()
+static void 
+shutdown(void)
 {
 	/* have kept display opened, so close it now */
 	if (clientpid > 0) {
@@ -588,7 +750,8 @@ void shutdown()
  * make a new copy of environment that has room for DISPLAY
  */
 
-static void set_environment ()
+static void 
+set_environment(void)
 {
     int nenvvars;
     char **newPtr, **oldPtr;
@@ -622,17 +785,22 @@ static void set_environment ()
     return;
 }
 
-Fatal(fmt, x0,x1,x2,x3,x4,x5,x6,x7,x8,x9)
-	char	*fmt;
+static void
+Fatal(char *msg)
 {
-	Error(fmt, x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);
+	Error(msg);
 	exit(ERR_EXIT);
 }
 
-Error(fmt, x0,x1,x2,x3,x4,x5,x6,x7,x8,x9)
-	char	*fmt;
+static void
+Error(char *fmt, ...)
 {
+        va_list ap;
+
+	va_start(ap, fmt);
 	fprintf(stderr, "%s:  ", program);
-	fprintf (stderr, "%s (errno %d):  ", strerror(errno), errno);
-	fprintf(stderr, fmt, x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);
+	if (errno > 0)
+	  fprintf (stderr, "%s (errno %d):  ", strerror(errno), errno);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
 }
