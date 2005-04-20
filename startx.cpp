@@ -162,14 +162,34 @@ esac
 
 authdisplay=${display:-:0}
 mcookie=`MK_COOKIE`
+dummy=0
+
+XCOMM create a file with auth information for the server. ':0' is a dummy.
+xserverauthfile=$HOME/.serverauth.$$
+xauth -q -f $xserverauthfile << EOF
+add :$dummy . $mcookie
+EOF
+serverargs=${serverargs}" -auth "${xserverauthfile}
+
+XCOMM now add the same credentials to the client authority file
+XCOMM if '$displayname' already exists don't overwrite it as another
+XCOMM server man need it. Add them to the '$xserverauthfile' instead.
 for displayname in $authdisplay $hostname$authdisplay; do
-    if ! xauth list "$displayname" | grep "$displayname " >/dev/null 2>&1; then
+     authcookie=`xauth list "$displayname" @@
+       | sed -n "s/.*$displayname[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
+    if [ "z${authcookie}" == "z" ] ; then
         xauth -q << EOF 
 add $displayname . $mcookie
 EOF
 	removelist="$displayname $removelist"
+    else
+        dummy=$((dummy+1));
+        xauth -q -f $xserverauthfile << EOF
+add :$dummy . $authcookie
+EOF
     fi
 done
+
 #endif
 
 xinit $client $clientargs -- $server $display $serverargs
@@ -177,7 +197,10 @@ xinit $client $clientargs -- $server $display $serverargs
 if [ x"$removelist" != x ]; then
     xauth remove $removelist
 fi
-
+if [ x"$xserverauthfile" != x ]; then
+    rm -f $xserverauthfile
+fi
+    
 /*
  * various machines need special cleaning up
  */
