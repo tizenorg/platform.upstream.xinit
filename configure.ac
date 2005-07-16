@@ -29,6 +29,9 @@ AM_MAINTAINER_MODE
 AM_CONFIG_HEADER(config.h)
 
 AC_PROG_CC
+AC_PROG_CPP
+AC_PATH_PROGS(RAWCPP, [cpp], [$(CPP)], 
+   [$PATH:/bin:/usr/bin:/usr/lib:/usr/libexec:/usr/ccs/lib:/usr/ccs/lbin:/lib])
 AC_PROG_INSTALL
 AC_PATH_PROG(SED,sed)
 

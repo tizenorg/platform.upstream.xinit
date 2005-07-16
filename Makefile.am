@@ -37,10 +37,10 @@ dist_man_MANS = \
 xinitrcdir = $(XINITDIR)
 
 xinitrc: xinitrc.cpp
-	$(SED) s/XINITDIR/`echo $(XINITDIR) | sed -e s/\\\\//\\\\\\\\\\\\\//g`/ < $< | $(SED) s/XCOMM/\#/ > $@
+	$(SED) s/XINITDIR/`echo $(XINITDIR) | sed -e s/\\\\//\\\\\\\\\\\\\//g`/ < $(srcdir)/xinitrc.cpp | $(SED) s/XCOMM/\#/ > $@
 
 startx: startx.cpp Makefile
-	$(CPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) $< | $(SED) -e /^\#/d | $(SED) -e s/XCOMM/\#/ > $@
+	$(RAWCPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) $(srcdir)/startx.cpp | $(SED) -e /^\#/d | $(SED) -e s/XCOMM/\#/ > $@
 
 xinitrc_DATA = xinitrc
 
