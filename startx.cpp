@@ -215,6 +215,6 @@ Xrepair
 screenrestore
 #endif
 
-#if defined(sun) && !defined(i386)
+#if defined(sun)
 kbd_mode -a
 #endif
