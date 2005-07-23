@@ -30,7 +30,7 @@ xinit_LDADD = $(XINIT_LIBS)
 xinit_SOURCES =	\
         xinit.c
 
-dist_man_MANS = \
+dist_man1_MANS = \
         startx.man \
         xinit.man
 
