@@ -177,7 +177,7 @@ XCOMM server man need it. Add them to the '$xserverauthfile' instead.
 for displayname in $authdisplay $hostname$authdisplay; do
      authcookie=`xauth list "$displayname" @@
        | sed -n "s/.*$displayname[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
-    if [ "z${authcookie}" == "z" ] ; then
+    if [ "z${authcookie}" = "z" ] ; then
         xauth -q << EOF 
 add $displayname . $mcookie
 EOF
