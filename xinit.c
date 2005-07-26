@@ -1,4 +1,5 @@
 /* $Xorg: xinit.c,v 1.5 2001/02/09 02:05:49 xorgcvs Exp $ */
+/* $XdotOrg: $ */
 
 /*
 
@@ -26,6 +27,10 @@ in this Software without prior written authorization from The Open Group.
 
 */
 /* $XFree86: xc/programs/xinit/xinit.c,v 3.32 2002/05/31 18:46:13 dawes Exp $ */
+
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 
 #include <X11/Xlib.h>
 #include <X11/Xos.h>
@@ -77,10 +82,12 @@ char **newenviron = NULL;
 #define SHELL "sh"
 #endif
 
-#ifndef HAS_VFORK
+#if !defined(HAS_VFORK) /* Imake */ && !defined(HAVE_WORKING_VFORK) /* autoconf*/
+#ifndef vfork
 #define vfork() fork()
+#endif
 #else
-#if defined(sun) && !defined(SVR4)
+#if (defined(sun) && !defined(SVR4)) || defined(HAVE_VFORK_H)
 #include <vfork.h>
 #endif
 #endif
@@ -183,12 +190,15 @@ static void set_environment ( void );
 static void Fatal(char *msg);
 static void Error ( char *fmt, ... );
 
-
+#ifdef RETSIGTYPE /* autoconf AC_TYPE_SIGNAL */
+# define SIGVAL RETSIGTYPE
+#else /* Imake */
 #ifdef SIGNALRETURNSINT
 #define SIGVAL int
 #else
 #define SIGVAL void
 #endif
+#endif /* RETSIGTYPE */
 
 #ifdef X_NOT_POSIX
 /* Can't use Error() in signal handlers */
