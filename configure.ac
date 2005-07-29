@@ -22,7 +22,7 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ([2.57])
-AC_INIT(xinit,[7.0], [xorg@freedesktop.org],xinit)
+AC_INIT(xinit,[0.99.0], [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg],xinit)
 AM_INIT_AUTOMAKE([dist-bzip2])
 AM_MAINTAINER_MODE
 
@@ -42,5 +42,7 @@ AC_FUNC_FORK
 PKG_CHECK_MODULES(XINIT, x11)
 AC_SUBST(XINIT_CFLAGS)
 AC_SUBST(XINIT_LIBS)
+
+XORG_RELEASE_VERSION
 
 AC_OUTPUT([Makefile])
