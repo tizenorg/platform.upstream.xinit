@@ -34,12 +34,20 @@ AC_PATH_PROGS(RAWCPP, [cpp], [$(CPP)],
    [$PATH:/bin:/usr/bin:/usr/lib:/usr/libexec:/usr/ccs/lib:/usr/ccs/lbin:/lib])
 AC_PROG_INSTALL
 AC_PATH_PROG(SED,sed)
+AC_CANONICAL_HOST
 
 AC_TYPE_SIGNAL
 AC_FUNC_FORK
 
 # Checks for pkg-config packages
 PKG_CHECK_MODULES(XINIT, x11)
+
+case $host_os in
+    *bsd*)
+        XINIT_CFLAGS="$XINIT_CFLAGS -DCSRG_BASED"
+        ;;
+esac
+
 AC_SUBST(XINIT_CFLAGS)
 AC_SUBST(XINIT_LIBS)
 
