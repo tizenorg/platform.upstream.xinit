@@ -40,7 +40,7 @@ xinitrc: xinitrc.cpp
 	$(SED) s/XINITDIR/`echo $(XINITDIR) | sed -e s/\\\\//\\\\\\\\\\\\\//g`/ < $(srcdir)/xinitrc.cpp | $(SED) s/XCOMM/\#/ > $@
 
 startx: startx.cpp Makefile
-	$(RAWCPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) $(srcdir)/startx.cpp | $(SED) -e /^\#/d | $(SED) -e s/XCOMM/\#/ > $@
+	$(RAWCPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) $(srcdir)/startx.cpp | $(SED) -e /^\#/d | $(SED) -e s/XCOMM/\#/ | $(SED) -e 's/@@/\\/' > $@
 
 xinitrc_DATA = xinitrc
 
