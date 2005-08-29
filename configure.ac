@@ -51,6 +51,9 @@ esac
 AC_SUBST(XINIT_CFLAGS)
 AC_SUBST(XINIT_LIBS)
 
+AC_PATH_PROGS(MCOOKIE, [mcookie], [$(MCOOKIE)],
+  [$PATH:/bin:/usr/bin:/usr/lib:/usr/libexec:/usr/local/bin])
+
 XORG_RELEASE_VERSION
 
 AC_OUTPUT([Makefile])
