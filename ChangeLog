@@ -1,5 +1,7 @@
 2005-08-29  Daniel Stone  <daniel@freedesktop.org>
 
+	Version 0.99.1.
+
 	* configure.ac:
 	* Makefile.am:
 	Define HAS_COOKIE_MAKER and search for mcookie so startx will generate
