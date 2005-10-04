@@ -215,6 +215,7 @@ sigCatch(int sig)
 #ifdef X_NOT_POSIX
 	char buf[1024];
 
+	signal(SIGTERM, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGINT, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
@@ -440,6 +441,7 @@ main(int argc, char *argv[], char *envp[])
 	signal(SIGCHLD, SIG_DFL);	/* Insurance */
 #endif
 #ifdef X_NOT_POSIX
+	signal(SIGTERM, sigCatch);
 	signal(SIGQUIT, sigCatch);
 	signal(SIGINT, sigCatch);
 	signal(SIGHUP, sigCatch);
@@ -451,6 +453,7 @@ main(int argc, char *argv[], char *envp[])
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;	/* do not set SA_RESTART */
 	
+	sigaction(SIGTERM, &sa, NULL);
 	sigaction(SIGQUIT, &sa, NULL);
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGHUP, &sa, NULL);
@@ -468,6 +471,7 @@ main(int argc, char *argv[], char *envp[])
 			)
 			pid = wait(NULL);
 	}
+	signal(SIGTERM, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGINT, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
