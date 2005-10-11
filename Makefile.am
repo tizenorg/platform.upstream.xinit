@@ -40,7 +40,7 @@ xinitrc: xinitrc.cpp
 	$(SED) s/XINITDIR/`echo $(XINITDIR) | sed -e s/\\\\//\\\\\\\\\\\\\//g`/ < $(srcdir)/xinitrc.cpp | $(SED) s/XCOMM/\#/ > $@
 
 startx: startx.cpp Makefile
-	$(RAWCPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) -DHAS_COOKIE_MAKER -DMK_COOKIE=$(MCOOKIE) $(srcdir)/startx.cpp | $(SED) -e /^\#/d | $(SED) -e s/XCOMM/\#/ | $(SED) -e 's/@@/\\/' > $@
+	$(RAWCPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) $(STARTX_COOKIE_FLAGS) $(srcdir)/startx.cpp | $(SED) -e /^\#/d | $(SED) -e s/XCOMM/\#/ | $(SED) -e 's/@@/\\/' > $@
 
 xinitrc_DATA = xinitrc
 
