@@ -30,21 +30,58 @@ xinit_LDADD = $(XINIT_LIBS)
 xinit_SOURCES =	\
         xinit.c
 
-dist_man1_MANS = \
-        startx.man \
+appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+
+appman_SOURCES = \
+	startx.man \
         xinit.man
+
+appman_DATA = $(appman_SOURCES:man=$(APP_MAN_SUFFIX))
+
+# Translate XCOMM into pound sign with sed, rather than passing -DXCOMM=XCOMM
+# to cpp, because that trick does not work on all ANSI C preprocessors.
+# Delete line numbers from the cpp output (-P is not portable, I guess).
+# Allow XCOMM to be preceded by whitespace and provide a means of generating
+# output lines with trailing backslashes.
+# Allow XHASH to always be substituted, even in cases where XCOMM isn't.
+
+CPP_SED_MAGIC = $(SED) -e '/^\#  *[0-9][0-9]*  *.*$$/d' \
+                       -e '/^\#line  *[0-9][0-9]*  *.*$$/d' \
+                       -e '/^[ 	]*XCOMM$$/s/XCOMM/\#/' \
+                       -e '/^[ 	]*XCOMM[^a-zA-Z0-9_]/s/XCOMM/\#/' \
+                       -e '/^[ 	]*XHASH/s/XHASH/\#/' \
+                       -e '/\@\@$$/s/\@\@$$/\\/'
+
+# Strings to replace in man pages
+XORGRELSTRING = @PACKAGE_STRING@
+  XORGMANNAME = X Version 11
+
+MANDEFS =  \
+	-D__xorgversion__="\"$(XORGRELSTRING)\" \"$(XORGMANNAME)\"" \
+	-D__appmansuffix__=$(APP_MAN_SUFFIX) \
+	-D__filemansuffix__=$(FILE_MAN_SUFFIX) \
+	-D__libmansuffix__=$(LIB_MAN_SUFFIX) \
+	-D__miscmansuffix__=$(MISC_MAN_SUFFIX) \
+	-D__XSERVERNAME__=Xorg -D__XCONFIGFILE__=xorg.conf \
+	-D__xinitdir__=$(XINITDIR) 
+
+SUFFIXES = .$(APP_MAN_SUFFIX) .man
+
+.man.$(APP_MAN_SUFFIX):
+	$(RAWCPP) $(RAWCPPFLAGS) $(MANDEFS) $(EXTRAMANDEFS) < $< | $(CPP_SED_MAGIC) > $@
 
 xinitrcdir = $(XINITDIR)
 
 xinitrc: xinitrc.cpp
-	$(SED) s/XINITDIR/`echo $(XINITDIR) | sed -e s/\\\\//\\\\\\\\\\\\\//g`/ < $(srcdir)/xinitrc.cpp | $(SED) s/XCOMM/\#/ > $@
+	$(RAWCPP) -DXINITDIR=$(XINITDIR) < $(srcdir)/xinitrc.cpp | $(CPP_SED_MAGIC) > $@
 
 startx: startx.cpp Makefile
-	$(RAWCPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) $(STARTX_COOKIE_FLAGS) $(srcdir)/startx.cpp | $(SED) -e /^\#/d | $(SED) -e s/XCOMM/\#/ | $(SED) -e 's/@@/\\/' > $@
+	$(RAWCPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) $(STARTX_COOKIE_FLAGS) $(srcdir)/startx.cpp | $(CPP_SED_MAGIC) > $@
 
 xinitrc_DATA = xinitrc
 
-CLEANFILES = xinitrc startx
+CLEANFILES = xinitrc startx $(appman_DATA)
 
-EXTRA_DIST = xinitrc.cpp startx.cpp			\
+EXTRA_DIST = xinitrc.cpp startx.cpp $(appman_SOURCES)	\
 		startx.cmd xinitrc.cmd xinit.def
+
