@@ -36,7 +36,7 @@ appman_SOURCES = \
 	startx.man \
         xinit.man
 
-appman_DATA = $(appman_SOURCES:man=$(APP_MAN_SUFFIX))
+appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
 
 # Translate XCOMM into pound sign with sed, rather than passing -DXCOMM=XCOMM
 # to cpp, because that trick does not work on all ANSI C preprocessors.
