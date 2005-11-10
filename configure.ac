@@ -56,6 +56,24 @@ if test x$MCOOKIE != x ; then
 fi
 AC_SUBST(STARTX_COOKIE_FLAGS)
 
+# Additional substitutions in xinitrc & man pages
+case $host_os in
+    *sco*)	
+	SHELL_CMD="/bin/ksh"
+	ARCHMANDEFS="-D__SCOMAN__"
+	;;
+    *)
+	SHELL_CMD="/bin/sh"
+	ARCHMANDEFS=""
+	;;
+esac
+AC_SUBST(SHELL_CMD)
+AC_SUBST(ARCHMANDEFS)
+
+# Defines which X servers are listed in help output in xinit.c
+# Cheat, lie, and assume all the world is Xorg for now
+AC_DEFINE(XORG, 1, [Define if you have Xorg X server])
+
 XORG_MANPAGE_SECTIONS
 XORG_RELEASE_VERSION
 

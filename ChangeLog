@@ -1,3 +1,15 @@
+2005-11-09  Alan Coopersmith  <alan.coopersmith@sun.com>
+
+	* configure.ac: 
+	Add settings for SHELL_CMD & ARCHMANDEFS to match monolith
+	changes for bug #3180.
+
+	AC_DEFINE(XORG,...) so it is listed as available server in xinit
+	help output.
+
+	* Makefile.am:
+	Update cpp -D flags to match monolith changes for bug #3180.
+	
 2005-11-09  Kevin E. Martin  <kem-at-freedesktop-dot-org>
 
 	* configure.ac:

@@ -63,7 +63,8 @@ MANDEFS =  \
 	-D__libmansuffix__=$(LIB_MAN_SUFFIX) \
 	-D__miscmansuffix__=$(MISC_MAN_SUFFIX) \
 	-D__XSERVERNAME__=Xorg -D__XCONFIGFILE__=xorg.conf \
-	-D__xinitdir__=$(XINITDIR) 
+	-D__xinitdir__=$(XINITDIR) \
+	-DSHELL_CMD=$(SHELL_CMD) $(ARCHMANDEFS)
 
 SUFFIXES = .$(APP_MAN_SUFFIX) .man
 
@@ -72,11 +73,15 @@ SUFFIXES = .$(APP_MAN_SUFFIX) .man
 
 xinitrcdir = $(XINITDIR)
 
+SCRIPTDEFS = \
+	-DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) -DLIBDIR=$(libdir) \
+	-DSHELL_CMD=$(SHELL_CMD) $(STARTX_COOKIE_FLAGS)
+
 xinitrc: xinitrc.cpp
-	$(RAWCPP) -DXINITDIR=$(XINITDIR) < $(srcdir)/xinitrc.cpp | $(CPP_SED_MAGIC) > $@
+	$(RAWCPP) $(SCRIPTDEFS) < $(srcdir)/xinitrc.cpp | $(CPP_SED_MAGIC) > $@
 
 startx: startx.cpp Makefile
-	$(RAWCPP) -DXINITDIR=$(XINITDIR) -DBINDIR=$(bindir) $(STARTX_COOKIE_FLAGS) $(srcdir)/startx.cpp | $(CPP_SED_MAGIC) > $@
+	$(RAWCPP) $(SCRIPTDEFS) < $(srcdir)/startx.cpp | $(CPP_SED_MAGIC) > $@
 
 xinitrc_DATA = xinitrc
 
