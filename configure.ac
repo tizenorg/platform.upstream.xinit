@@ -37,6 +37,57 @@ AC_CANONICAL_HOST
 AC_TYPE_SIGNAL
 AC_FUNC_FORK
 
+# Build options
+DEFAULT_XRDB=xrdb
+DEFAULT_XMODMAP=xmodmap
+DEFAULT_TWM=twm
+DEFAULT_XCLOCK=xclock
+DEFAULT_XTERM=xterm
+# You always want to specify the full path to the X server
+DEFAULT_XSERVER=${bindir}/X
+DEFAULT_XAUTH=xauth
+DEFAULT_XINIT=xinit
+
+AC_ARG_WITH(xrdb,
+	 AS_HELP_STRING([--with-xrdb=XRDB], [Path to xrdb]),
+	[XRDB="$withval"],
+	[XRDB="$DEFAULT_XRDB"])
+
+AC_ARG_WITH(xmodmap,
+	 AS_HELP_STRING([--with-xmodmap=XMODMAP], [Path to xmodmap]),
+	[XMODMAP="$withval"],
+	[XMODMAP="$DEFAULT_XMODMAP"])
+
+AC_ARG_WITH(twm,
+	 AS_HELP_STRING([--with-twm=TWM], [Path to twm]),
+	[TWM="$withval"],
+	[TWM="$DEFAULT_TWM"])
+
+AC_ARG_WITH(xclock,
+	 AS_HELP_STRING([--with-xclock=XCLOCK], [Path to xclock]),
+	[XCLOCK="$withval"],
+	[XCLOCK="$DEFAULT_XCLOCK"])
+
+AC_ARG_WITH(xterm,
+	 AS_HELP_STRING([--with-xterm=XTERM], [Path to xterm]),
+	[XTERM="$withval"],
+	[XTERM="$DEFAULT_XTERM"])
+
+AC_ARG_WITH(xserver,
+	 AS_HELP_STRING([--with-xserver=XSERVER], [Path to default X server]),
+	[XSERVER="$withval"],
+	[XSERVER="$DEFAULT_XSERVER"])
+
+AC_ARG_WITH(xauth,
+	 AS_HELP_STRING([--with-xauth=XAUTH], [Path to xauth]),
+	[XAUTH="$withval"],
+	[XAUTH="$DEFAULT_XAUTH"])
+
+AC_ARG_WITH(xinit,
+	 AS_HELP_STRING([--with-xinit=XINIT], [Path to xinit]),
+	[XINIT="$withval"],
+	[XINIT="$DEFAULT_XINIT"])
+
 # Checks for pkg-config packages
 PKG_CHECK_MODULES(XINIT, x11)
 
@@ -69,6 +120,15 @@ case $host_os in
 esac
 AC_SUBST(SHELL_CMD)
 AC_SUBST(ARCHMANDEFS)
+
+AC_SUBST(XRDB)
+AC_SUBST(XMODMAP)
+AC_SUBST(TWM)
+AC_SUBST(XCLOCK)
+AC_SUBST(XTERM)
+AC_SUBST(XSERVER)
+AC_SUBST(XAUTH)
+AC_SUBST(XINIT)
 
 # Defines which X servers are listed in help output in xinit.c
 # Cheat, lie, and assume all the world is Xorg for now
