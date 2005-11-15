@@ -64,8 +64,8 @@ sysclientrc=XINITDIR/xinitrc
 
 userserverrc=$HOME/.xserverrc
 sysserverrc=XINITDIR/xserverrc
-defaultclient=BINDIR/xterm
-defaultserver=BINDIR/X
+defaultclient=XTERM
+defaultserver=XSERVER
 defaultclientargs=""
 defaultserverargs=""
 clientargs=""
@@ -200,16 +200,16 @@ XCOMM now add the same credentials to the client authority file
 XCOMM if '$displayname' already exists don't overwrite it as another
 XCOMM server man need it. Add them to the '$xserverauthfile' instead.
 for displayname in $authdisplay $hostname$authdisplay; do
-     authcookie=`BINDIR/xauth list "$displayname" @@
+     authcookie=`XAUTH list "$displayname" @@
        | sed -n "s/.*$displayname[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
     if [ "z${authcookie}" = "z" ] ; then
-        BINDIR/xauth -q << EOF 
+        XAUTH -q << EOF 
 add $displayname . $mcookie
 EOF
 	removelist="$displayname $removelist"
     else
         dummy=$((dummy+1));
-        BINDIR/xauth -q -f $xserverauthfile << EOF
+        XAUTH -q -f $xserverauthfile << EOF
 add :$dummy . $authcookie
 EOF
     fi
@@ -221,14 +221,14 @@ done
 if [ "$REMOTE_SERVER" = "TRUE" ]; then
         exec SHELL_CMD ${client}
 else
-        BINDIR/xinit $client $clientargs -- $server $display $serverargs
+        XINIT $client $clientargs -- $server $display $serverargs
 fi
 #else
-BINDIR/xinit $client $clientargs -- $server $display $serverargs
+XINIT $client $clientargs -- $server $display $serverargs
 #endif
 
 if [ x"$removelist" != x ]; then
-    BINDIR/xauth remove $removelist
+    XAUTH remove $removelist
 fi
 if [ x"$xserverauthfile" != x ]; then
     rm -f $xserverauthfile

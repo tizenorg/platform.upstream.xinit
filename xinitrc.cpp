@@ -9,19 +9,19 @@ sysmodmap=XINITDIR/.Xmodmap
 XCOMM merge in defaults and keymaps
 
 if [ -f $sysresources ]; then
-    BINDIR/xrdb -merge $sysresources
+    XRDB -merge $sysresources
 fi
 
 if [ -f $sysmodmap ]; then
-    BINDIR/xmodmap $sysmodmap
+    XMODMAP $sysmodmap
 fi
 
 if [ -f $userresources ]; then
-    BINDIR/xrdb -merge $userresources
+    XRDB -merge $userresources
 fi
 
 if [ -f $usermodmap ]; then
-    BINDIR/xmodmap $usermodmap
+    XMODMAP $usermodmap
 fi
 
 XCOMM start some nice programs
@@ -68,8 +68,8 @@ fi
 
 XCOMM This is the fallback case if nothing else is executed above
 #endif /* !defined(__SCO__)  && !defined(__UNIXWARE__) */
-BINDIR/twm &
-BINDIR/xclock -geometry 50x50-1+1 &
-BINDIR/xterm -geometry 80x50+494+51 &
-BINDIR/xterm -geometry 80x20+494-0 &
-exec BINDIR/xterm -geometry 80x66+0+0 -name login
+TWM &
+XCLOCK -geometry 50x50-1+1 &
+XTERM -geometry 80x50+494+51 &
+XTERM -geometry 80x20+494-0 &
+exec XTERM -geometry 80x66+0+0 -name login
