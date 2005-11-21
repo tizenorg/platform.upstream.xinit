@@ -4,6 +4,7 @@ Makefile.in
 aclocal.m4
 autom4te.cache
 compile
+config.guess
 config.h
 config.h.in
 config.log
@@ -15,5 +16,7 @@ install-sh
 missing
 stamp-h1
 startx
+startx.1
 xinit
+xinit.1
 xinitrc
