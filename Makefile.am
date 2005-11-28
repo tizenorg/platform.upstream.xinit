@@ -30,7 +30,7 @@ xinit_LDADD = $(XINIT_LIBS)
 xinit_SOURCES =	\
         xinit.c
 
-appmandir =  $(mandir)/man$(APP_MAN_SUFFIX)
+appmandir = $(APP_MAN_DIR)
 
 appman_SOURCES = \
 	startx.man \
