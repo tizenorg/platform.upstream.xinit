@@ -32,11 +32,11 @@ xinit_SOURCES =	\
 
 appmandir = $(APP_MAN_DIR)
 
-appman_SOURCES = \
+appman_PRE = \
 	startx.man \
         xinit.man
 
-appman_DATA = $(appman_SOURCES:man=@APP_MAN_SUFFIX@)
+appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
 
 # Translate XCOMM into pound sign with sed, rather than passing -DXCOMM=XCOMM
 # to cpp, because that trick does not work on all ANSI C preprocessors.
@@ -97,6 +97,6 @@ xinitrc_DATA = xinitrc
 
 CLEANFILES = xinitrc startx $(appman_DATA)
 
-EXTRA_DIST = xinitrc.cpp startx.cpp $(appman_SOURCES)	\
+EXTRA_DIST = xinitrc.cpp startx.cpp $(appman_PRE)	\
 		startx.cmd xinitrc.cmd xinit.def
 
