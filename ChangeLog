@@ -1,3 +1,9 @@
+2006-04-30  Matthieu Herrb <matthieu.herrb@laas.fr>
+
+	* configure.ac:
+	Quote MCOOKIE to allow to specify a command with args (ie
+	MCOOKIE="/usr/sbin/openssl rand -hex 16" ./configure ...)
+
 2006-04-01  Adam Jackson  <ajax@freedesktop.org>
 
 	* configure.ac:
