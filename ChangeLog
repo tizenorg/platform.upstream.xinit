@@ -1,3 +1,9 @@
+2006-05-27  Jeremy C. Reed  <reed@reedmedia.net>
+
+	* startx.cpp:
+	In comments, change contractions to be spelled out to fix
+	cpp "missing terminating" errors with single quotes.
+
 2006-04-30  Matthieu Herrb <matthieu.herrb@laas.fr>
 
 	* configure.ac:
