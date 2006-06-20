@@ -692,7 +692,10 @@ static int
 startClient(char *client[])
 {
 	if ((clientpid = vfork()) == 0) {
-		setuid(getuid());
+		if (setuid(getuid()) == -1) {
+			Error("cannot change uid: %s\n", strerror(errno));
+			_exit(ERR_EXIT);
+		}
 		setpgrp(0, getpid());
 		environ = newenviron;
 #ifdef __UNIXOS2__
