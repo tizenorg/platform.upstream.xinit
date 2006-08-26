@@ -34,8 +34,10 @@ in this Software without prior written authorization from The Open Group.
 
 #include <X11/Xlib.h>
 #include <X11/Xos.h>
+#include <X11/Xatom.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #ifdef X_POSIX_C_SOURCE
 #define _POSIX_C_SOURCE X_POSIX_C_SOURCE
@@ -77,6 +79,7 @@ char **envsave;	/* to circumvent an UNIXOS2 problem */
 #include <stdlib.h>
 extern char **environ;
 char **newenviron = NULL;
+char **newenvironlast = NULL;
 
 #ifndef SHELL
 #define SHELL "sh"
@@ -688,9 +691,80 @@ startServer(char *server[])
 	return(serverpid);
 }
 
+static void
+setWindowPath(void)
+{
+	/* setting WINDOWPATH for clients */
+	Atom prop;
+	Atom actualtype;
+	int actualformat;
+	unsigned long nitems;
+	unsigned long bytes_after;
+	unsigned char *buf;
+	const char *windowpath;
+	char *newwindowpath;
+	unsigned long num;
+	char nums[10];
+	int numn;
+	prop = XInternAtom(xd, "XFree86_VT", False);
+	if (prop == None) {
+		fprintf(stderr, "no XFree86_VT atom\n");
+		return;
+	}
+	if (XGetWindowProperty(xd, DefaultRootWindow(xd), prop, 0, 1, 
+		False, AnyPropertyType, &actualtype, &actualformat, 
+		&nitems, &bytes_after, &buf)) {
+		fprintf(stderr, "no XFree86_VT property\n");
+		return;
+	}
+	if (nitems != 1) {
+		fprintf(stderr, "%lu items in XFree86_VT property!\n", nitems);
+		XFree(buf);
+		return;
+	}
+	switch (actualtype) {
+	case XA_CARDINAL:
+	case XA_INTEGER:
+	case XA_WINDOW:
+		switch (actualformat) {
+		case  8:
+			num = (*(uint8_t  *)(void *)buf);
+			break;
+		case 16:
+			num = (*(uint16_t *)(void *)buf);
+			break;
+		case 32:
+			num = (*(uint32_t *)(void *)buf);
+			break;
+		default:
+			fprintf(stderr, "format %d in XFree86_VT property!\n", actualformat);
+			XFree(buf);
+			return;
+		}
+		break;
+	default:
+		fprintf(stderr, "type %lx in XFree86_VT property!\n", actualtype);
+		XFree(buf);
+		return;
+	}
+	XFree(buf);
+	windowpath = getenv("WINDOWPATH");
+	numn = snprintf(nums, sizeof(nums), "%lu", num);
+	if (!windowpath) {
+		newwindowpath = malloc(10 + 1 + numn + 1);
+		sprintf(newwindowpath, "WINDOWPATH=%s", nums);
+	} else {
+		newwindowpath = malloc(10 + 1 + strlen(windowpath) + 1 + numn + 1);
+		sprintf(newwindowpath, "WINDOWPATH=%s:%s", windowpath, nums);
+	}
+	*newenvironlast++ = newwindowpath;
+	*newenvironlast = NULL;
+}
+
 static int
 startClient(char *client[])
 {
+	setWindowPath();
 	if ((clientpid = vfork()) == 0) {
 		if (setuid(getuid()) == -1) {
 			Error("cannot change uid: %s\n", strerror(errno));
@@ -795,11 +869,11 @@ set_environment(void)
     for (oldPtr = environ; *oldPtr; oldPtr++) ;
 
     nenvvars = (oldPtr - environ);
-    newenviron = (char **) malloc ((nenvvars + 2) * sizeof(char **));
+    newenviron = (char **) malloc ((nenvvars + 3) * sizeof(char **));
     if (!newenviron) {
 	fprintf (stderr,
 		 "%s:  unable to allocate %d pointers for environment\n",
-		 program, nenvvars + 2);
+		 program, nenvvars + 3);
 	exit (1);
     }
 
@@ -811,11 +885,13 @@ set_environment(void)
 
     /* copy pointers to other variables */
     for (oldPtr = environ; *oldPtr; oldPtr++) {
-	if (strncmp (*oldPtr, "DISPLAY=", 8) != 0) {
+	if (strncmp (*oldPtr, "DISPLAY=", 8) != 0
+	 && strncmp (*oldPtr, "WINDOWPATH=", 11) != 0) {
 	    *newPtr++ = *oldPtr;
 	}
     }
     *newPtr = NULL;
+    newenvironlast=newPtr;
     return;
 }
 
