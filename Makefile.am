@@ -64,6 +64,7 @@ MANDEFS =  \
 	-D__miscmansuffix__=$(MISC_MAN_SUFFIX) \
 	-D__XSERVERNAME__=Xorg -D__XCONFIGFILE__=xorg.conf \
 	-D__xinitdir__=$(XINITDIR) \
+	-D__bindir__=$(bindir) \
 	-DSHELL_CMD=$(SHELL_CMD) $(ARCHMANDEFS)
 
 SUFFIXES = .$(APP_MAN_SUFFIX) .man
