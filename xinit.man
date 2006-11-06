@@ -164,7 +164,7 @@ novice users:
 .in +8
 .nf
 \&#!/bin/sh
-xinit /usr/local/lib/site.xinitrc \-\^\- /usr/X11R6/bin/X bc
+xinit /usr/local/lib/site.xinitrc \-\^\- /usr/X11R6/bin/X -br
 .fi
 .in -8
 .sp
