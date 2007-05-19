@@ -34,7 +34,7 @@ xinit \- X Window System initializer
 .I client
 ]
 .I options
-] [
+\&\.\|.\|. ] [
 .B \-\^\-
 [
 .I server
@@ -42,7 +42,7 @@ xinit \- X Window System initializer
 .I display
 ]
 .I options
-]
+\&.\|.\|. ]
 .SH DESCRIPTION
 The \fIxinit\fP program is used to start the X Window System server and a first
 client program on systems that
