@@ -708,17 +708,23 @@ setWindowPath(void)
 	int numn;
 	prop = XInternAtom(xd, "XFree86_VT", False);
 	if (prop == None) {
+#ifdef DEBUG
 		fprintf(stderr, "no XFree86_VT atom\n");
+#endif
 		return;
 	}
 	if (XGetWindowProperty(xd, DefaultRootWindow(xd), prop, 0, 1, 
 		False, AnyPropertyType, &actualtype, &actualformat, 
 		&nitems, &bytes_after, &buf)) {
+#ifdef DEBUG
 		fprintf(stderr, "no XFree86_VT property\n");
+#endif
 		return;
 	}
 	if (nitems != 1) {
+#ifdef DEBUG
 		fprintf(stderr, "%lu items in XFree86_VT property!\n", nitems);
+#endif
 		XFree(buf);
 		return;
 	}
@@ -737,13 +743,17 @@ setWindowPath(void)
 			num = (*(uint32_t *)(void *)buf);
 			break;
 		default:
+#ifdef DEBUG
 			fprintf(stderr, "format %d in XFree86_VT property!\n", actualformat);
+#endif
 			XFree(buf);
 			return;
 		}
 		break;
 	default:
+#ifdef DEBUG	    
 		fprintf(stderr, "type %lx in XFree86_VT property!\n", actualtype);
+#endif
 		XFree(buf);
 		return;
 	}
