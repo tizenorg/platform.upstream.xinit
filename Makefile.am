@@ -99,5 +99,9 @@ xinitrc_DATA = xinitrc
 CLEANFILES = xinitrc startx $(appman_DATA)
 
 EXTRA_DIST = xinitrc.cpp startx.cpp $(appman_PRE)	\
-		startx.cmd xinitrc.cmd xinit.def
+		startx.cmd xinitrc.cmd xinit.def ChangeLog autogen.sh
 
+ChangeLog:
+	(GIT_DIR=$(top_srcdir)/.git git-log > .changelog.tmp && mv .changelog.tmp ChangeLog; rm -f .changelog.tmp) || (touch ChangeLog; echo 'git directory not found: installing possibly empty changelog.' >&2)
+
+dist-hook: ChangeLog
