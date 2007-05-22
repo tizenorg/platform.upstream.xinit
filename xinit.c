@@ -85,14 +85,14 @@ char **newenvironlast = NULL;
 #define SHELL "sh"
 #endif
 
-#if !defined(HAS_VFORK) /* Imake */ && !defined(HAVE_WORKING_VFORK) /* autoconf*/
-#ifndef vfork
-#define vfork() fork()
-#endif
+#ifndef HAVE_WORKING_VFORK
+# ifndef vfork
+#  define vfork() fork()
+# endif
 #else
-#if (defined(sun) && !defined(SVR4)) || defined(HAVE_VFORK_H)
-#include <vfork.h>
-#endif
+# ifdef HAVE_VFORK_H
+#  include <vfork.h>
+# endif
 #endif
 
 /* A/UX setpgid incorrectly removes the controlling terminal.
@@ -195,12 +195,6 @@ static void Error ( char *fmt, ... );
 
 #ifdef RETSIGTYPE /* autoconf AC_TYPE_SIGNAL */
 # define SIGVAL RETSIGTYPE
-#else /* Imake */
-#ifdef SIGNALRETURNSINT
-#define SIGVAL int
-#else
-#define SIGVAL void
-#endif
 #endif /* RETSIGTYPE */
 
 static SIGVAL 
