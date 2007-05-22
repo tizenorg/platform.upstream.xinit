@@ -111,12 +111,12 @@ char **newenvironlast = NULL;
 #define Execvpe(path, argv, envp) execvp(path, argv)
 #endif
 
-char *bindir = BINDIR;
-char *server_names[] = {
+const char *bindir = BINDIR;
+const char * const server_names[] = {
 #if defined(ultrix) && defined(mips)
     "Xdec        Digital color display on DECstation",
 #endif
-#ifdef sun				/* Sun */
+#if defined(sun) && !defined(XORG)	/* Sun */
     "Xsun        Sun BW2, CG2, CG3, CG4, or CG6 on Sun 2, 3, 4, or 386i",
     "Xsunmono    Sun BW2 on Sun 2, 3, 4, or 386i ",
     "Xsun24      Sun BW2, CG2, CG3, CG4, CG6, or CG8 on Sun 4",
@@ -134,14 +134,16 @@ char *server_names[] = {
     "XFree86     XFree86 displays",
 #endif
 #ifdef XORG
-    "Xorg	 X.Org displays",
+    "Xorg        Common X server for most displays",
 #endif
 #ifdef __DARWIN__
     "XDarwin         Darwin/Mac OS X IOKit displays",
     "XDarwinQuartz   Mac OS X Quartz displays",
     "XDarwinStartup  Auto-select between XDarwin and XDarwinQuartz",
 #endif
-    
+    "Xvfb        Virtual frame buffer",
+    "Xnest       X server nested in a window on another X server",
+    "Xephyr      kdrive-based nested X server",
     NULL};
 
 #ifndef XINITRC
@@ -616,7 +618,7 @@ startServer(char *server[])
 		Execute (server, environ);
 		Error ("no server \"%s\" in PATH\n", server[0]);
 		{
-		    char **cpp;
+		    const char * const *cpp;
 
 		    fprintf (stderr,
 "\nUse the -- option, or make sure that %s is in your path and\n",
