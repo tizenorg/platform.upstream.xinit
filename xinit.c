@@ -97,8 +97,8 @@ char **newenvironlast = NULL;
 
 /* A/UX setpgid incorrectly removes the controlling terminal.
    Per Posix, only setsid should do that. */
-#if !defined(X_NOT_POSIX) && !defined(macII)
-#define setpgrp setpgid
+#ifdef macII
+#define setpgid setpgrp
 #endif
 
 #ifdef __UNIXOS2__
@@ -180,9 +180,7 @@ union wait	status;
 #endif /* SYSV */
 int serverpid = -1;
 int clientpid = -1;
-#ifndef X_NOT_POSIX
 volatile int gotSignal = 0;
-#endif
 
 static void Execute ( char **vec, char **envp );
 static Bool waitforserver ( void );
@@ -205,35 +203,11 @@ static void Error ( char *fmt, ... );
 #endif
 #endif /* RETSIGTYPE */
 
-#ifdef X_NOT_POSIX
-/* Can't use Error() in signal handlers */
-#ifndef STDERR_FILENO
-#define WRITES(s) write(STDERR_FILENO, (s), strlen(s))
-#else
-#define WRITES(s) write(fileno(stderr), (s), strlen(s))
-#endif
-#endif
-
 static SIGVAL 
 sigCatch(int sig)
 {
-#ifdef X_NOT_POSIX
-	char buf[1024];
-
-	signal(SIGTERM, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGINT, SIG_IGN);
-	signal(SIGHUP, SIG_IGN);
-	signal(SIGPIPE, SIG_IGN);
-	snprintf(buf, sizeof buf, "%s: unexpected signal %d\r\n", 
-		 program, sig);
-	WRITES(buf);
-	shutdown();
-	_exit(ERR_EXIT);
-#else
 	/* On system with POSIX signals, just interrupt the system call */
 	gotSignal = sig;
-#endif
 }
 
 static SIGVAL 
@@ -282,9 +256,7 @@ main(int argc, char *argv[], char *envp[])
 	int client_given = 0, server_given = 0;
 	int client_args_given = 0, server_args_given = 0;
 	int start_of_client_args, start_of_server_args;
-#ifndef X_NOT_POSIX
 	struct sigaction sa;
-#endif
 
 #ifdef __UNIXOS2__
 	envsave = envp;	/* circumvent an EMX problem */
@@ -445,13 +417,7 @@ main(int argc, char *argv[], char *envp[])
 #ifdef SIGCHLD
 	signal(SIGCHLD, SIG_DFL);	/* Insurance */
 #endif
-#ifdef X_NOT_POSIX
-	signal(SIGTERM, sigCatch);
-	signal(SIGQUIT, sigCatch);
-	signal(SIGINT, sigCatch);
-	signal(SIGHUP, sigCatch);
-	signal(SIGPIPE, sigCatch);
-#else
+
 	/* Let those signal interrupt the wait() call in the main loop */
 	memset(&sa, 0, sizeof sa);
 	sa.sa_handler = sigCatch;
@@ -463,16 +429,14 @@ main(int argc, char *argv[], char *envp[])
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGHUP, &sa, NULL);
 	sigaction(SIGPIPE, &sa, NULL);
-#endif
+
 	signal(SIGALRM, sigAlarm);
 	signal(SIGUSR1, sigUsr1);
 	if (startServer(server) > 0
 	 && startClient(client) > 0) {
 		pid = -1;
 		while (pid != clientpid && pid != serverpid
-#ifndef X_NOT_POSIX
 		       && gotSignal == 0
-#endif
 			)
 			pid = wait(NULL);
 	}
@@ -483,12 +447,12 @@ main(int argc, char *argv[], char *envp[])
 	signal(SIGPIPE, SIG_IGN);
 
 	shutdown();
-#ifndef X_NOT_POSIX
+
 	if (gotSignal != 0) {
 		Error("unexpected signal %d.\n", gotSignal);
 		exit(ERR_EXIT);
 	}
-#endif
+
 	if (serverpid < 0 )
 		Fatal("Server error.\n");
 	if (clientpid < 0)
@@ -566,32 +530,21 @@ processTimeout(int timeout, char *string)
 static int
 startServer(char *server[])
 {
-#if !defined(X_NOT_POSIX)
 	sigset_t mask, old;
-#else
-	int old;
-#endif
 #ifdef __UNIXOS2__
 	sigset_t pendings;
 #endif
 
-#if !defined(X_NOT_POSIX)
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGUSR1);
 	sigprocmask(SIG_BLOCK, &mask, &old);
-#else
-	old = sigblock (sigmask (SIGUSR1));
-#endif
+
 	serverpid = fork(); 
 
 	switch(serverpid) {
 	case 0:
 		/* Unblock */
-#ifndef X_NOT_POSIX
 		sigprocmask(SIG_SETMASK, &old, NULL);
-#else
-		sigsetmask (old);
-#endif
 
 		/*
 		 * don't hang on read/write to control tty
@@ -613,7 +566,7 @@ startServer(char *server[])
 		 * if client is xterm -L
 		 */
 #ifndef __UNIXOS2__
-		setpgrp(0,getpid());
+		setpgid(0,getpid());
 #endif
 		Execute (server, environ);
 		Error ("no server \"%s\" in PATH\n", server[0]);
@@ -661,7 +614,6 @@ startServer(char *server[])
 		 */
 		alarm (15);
 
-#ifndef X_NOT_POSIX
 #ifdef __UNIXOS2__
 		/*
 		 * fg2003/05/06: work around a problem in EMX: sigsuspend()
@@ -676,11 +628,6 @@ startServer(char *server[])
 		sigsuspend(&old);
 		alarm (0);
 		sigprocmask(SIG_SETMASK, &old, NULL);
-#else
-		sigpause (old);
-		alarm (0);
-		sigsetmask (old);
-#endif
 
 		if (waitforserver() == 0) {
 			Error("unable to connect to X server\r\n");
@@ -782,7 +729,7 @@ startClient(char *client[])
 			Error("cannot change uid: %s\n", strerror(errno));
 			_exit(ERR_EXIT);
 		}
-		setpgrp(0, getpid());
+		setpgid(0, getpid());
 		environ = newenviron;
 #ifdef __UNIXOS2__
 #undef environ
@@ -801,7 +748,7 @@ startClient(char *client[])
 	return (clientpid);
 }
 
-#if !defined(X_NOT_POSIX) || defined(SYSV) || defined(__UNIXOS2__)
+#ifndef HAVE_KILLPG
 #define killpg(pgrp, sig) kill(-(pgrp), sig)
 #endif
 

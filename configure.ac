@@ -37,6 +37,8 @@ AC_CANONICAL_HOST
 AC_TYPE_SIGNAL
 AC_FUNC_FORK
 
+AC_CHECK_FUNCS([killpg])
+
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
 
 # Build options
