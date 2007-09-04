@@ -189,7 +189,7 @@ authdisplay=${display:-:0}
 mcookie=`MK_COOKIE`
 #else
 mcookie=`dd if=/dev/random bs=16 count=1 2>/dev/null | hexdump -e \\"%08x\\"`
-if x"$mcookie" = x; then
+if test x"$mcookie" = x; then
                 echo "Couldn't create cookie"
                 exit 1
 fi
