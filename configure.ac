@@ -1,4 +1,3 @@
-
 dnl  Copyright 2005 Red Hat, Inc.
 dnl 
 dnl  Permission to use, copy, modify, distribute, and sell this software and its
@@ -106,6 +105,13 @@ AC_SUBST(XINIT_LIBS)
 
 AC_PATH_PROGS(MCOOKIE, [mcookie], [$MCOOKIE],
   [$PATH:/bin:/usr/bin:/usr/lib:/usr/libexec:/usr/local/bin])
+
+case $host_os in
+	*openbsd*)
+	MCOOKIE='dd if=/dev/urandom bs=16 count=1 2>/dev/null | hexdump -e \\\"%08x\\\"'
+	;;
+esac
+
 if test "x$MCOOKIE" != x ; then
 	STARTX_COOKIE_FLAGS='-DHAS_COOKIE_MAKER -DMK_COOKIE="$(MCOOKIE)"'
 fi
