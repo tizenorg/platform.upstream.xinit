@@ -68,6 +68,11 @@ fi
 
 XCOMM This is the fallback case if nothing else is executed above
 #endif /* !defined(__SCO__)  && !defined(__UNIXWARE__) */
+
+#ifdef __APPLE__
+[ -x /usr/bin/quartz-wm ] && exec /usr/bin/quartz-wm
+#endif
+
 TWM &
 XCLOCK -geometry 50x50-1+1 &
 XTERM -geometry 80x50+494+51 &

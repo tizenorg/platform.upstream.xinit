@@ -136,12 +136,11 @@ const char * const server_names[] = {
 #ifdef XORG
     "Xorg        Common X server for most displays",
 #endif
-#ifdef __DARWIN__
-    "XDarwin         Darwin/Mac OS X IOKit displays",
-    "XDarwinQuartz   Mac OS X Quartz displays",
-    "XDarwinStartup  Auto-select between XDarwin and XDarwinQuartz",
+#ifdef __APPLE__
+    "Xquartz     Mac OSX Quartz displays.",
 #endif
     "Xvfb        Virtual frame buffer",
+    "Xfake       kdrive-based virtual frame buffer",
     "Xnest       X server nested in a window on another X server",
     "Xephyr      kdrive-based nested X server",
     NULL};
