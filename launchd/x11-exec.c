@@ -30,6 +30,7 @@
 
 #include <CoreServices/CoreServices.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #define kX11AppBundleId "org.x.X11"
 #define kX11AppBundlePath "/Contents/MacOS/X11"
@@ -53,16 +54,31 @@ int main(int argc, char **argv) {
                 exit(2);
             }
 
-            printf("%s/%s\n", x11_path, kX11AppBundlePath);
+            strlcat(x11_path, kX11AppBundlePath, sizeof(x11_path));
+            fprintf(stderr, "X11.app = %s\n", x11_path);
 
-            exit(0);
+            args = (char**)malloc(sizeof (char*) * (argc + 1));
+            if (args) {
+                int i;
+                args[0] = x11_path;
+                for (i = 1; i < argc; ++i) {
+                    args[i] = argv[i];
+                }
+                args[i] = NULL;
+            }
+            
+            execv(x11_path, args);
+
+            fprintf(stderr, "Error executing X11.app (%s):", x11_path);
+            perror(NULL);
+            exit(3);
             break;
         case kLSApplicationNotFoundErr:
             fprintf(stderr, "%s: Unable to find application for %s\n", argv[0], kX11AppBundleId);
             exit(4);
         default:
             fprintf(stderr, "%s: Unable to find application for %s, error code = %d\n", 
-                    argv[0], kX11AppBundleId, osstatus);
+                    argv[0], kX11AppBundleId, (int)osstatus);
             exit(5);
     }
     /* not reached */

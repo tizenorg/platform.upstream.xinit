@@ -107,11 +107,11 @@ fi
 if test "x$LAUNCHD" = "xyes" ; then
 	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
 
-	# For now, this is how we find X11.app on OS-X...
-	# A future version of launchd should let us do this cleaner
 	case $host_os in
 		darwin*)
-			XSERVER=\'\`'$(libexecdir)/x11-exec'\`\'
+			# For now, this is how we find X11.app on OS-X...
+			# A future version of launchd should let us do this cleaner
+			#XSERVER=\'\`'$(libexecdir)/x11-exec'\`\'
 			AM_CONDITIONAL(APPLE, true)
 	;;
 	esac

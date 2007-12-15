@@ -160,16 +160,16 @@ char xserverrcbuf[256];
 #define	OK_EXIT		0
 #define	ERR_EXIT	1
 
-char *default_server = "X";
-char *default_display = ":0";		/* choose most efficient */
-char *default_client[] = {"xterm", "-geometry", "+1+1", "-n", "login", NULL};
-char *serverargv[100];
-char *clientargv[100];
-char **server = serverargv + 2;		/* make sure room for sh .xserverrc args */
-char **client = clientargv + 2;		/* make sure room for sh .xinitrc args */
-char *displayNum;
-char *program;
-Display *xd;			/* server connection */
+static char *default_server = "X";
+static char *default_display = ":0";		/* choose most efficient */
+static char *default_client[] = {"xterm", "-geometry", "+1+1", "-n", "login", NULL};
+static char *serverargv[100];
+static char *clientargv[100];
+static char **server = serverargv + 2;		/* make sure room for sh .xserverrc args */
+static char **client = clientargv + 2;		/* make sure room for sh .xinitrc args */
+static char *displayNum = NULL;
+static char *program = NULL;
+static Display *xd = NULL;			/* server connection */
 #ifndef SYSV
 #if defined(__CYGWIN__) || defined(SVR4) || defined(_POSIX_SOURCE) || defined(CSRG_BASED) || defined(__UNIXOS2__) || defined(Lynx) || defined(__APPLE__)
 int status;
@@ -206,7 +206,7 @@ sigCatch(int sig)
 static SIGVAL 
 sigAlarm(int sig)
 {
-#if defined(SYSV) || defined(SVR4) || defined(linux) || defined(__UNIXOS2__)
+#if defined(SYSV) || defined(SVR4) || defined(linux) || defined(__UNIXOS2__) || defined(__APPLE__)
 	signal (sig, sigAlarm);
 #endif
 }
@@ -214,7 +214,7 @@ sigAlarm(int sig)
 static SIGVAL
 sigUsr1(int sig)
 {
-#if defined(SYSV) || defined(SVR4) || defined(linux) || defined(__UNIXOS2__)
+#if defined(SYSV) || defined(SVR4) || defined(linux) || defined(__UNIXOS2__) || defined(__APPLE__)
 	signal (sig, sigUsr1);
 #endif
 }
@@ -397,7 +397,6 @@ main(int argc, char *argv[], char *envp[])
 		}
 	    }
 	}
-
 
 	/*
 	 * put the display name into the environment
@@ -815,7 +814,7 @@ set_environment(void)
 {
     int nenvvars;
     char **newPtr, **oldPtr;
-    static char displaybuf[256];
+    static char displaybuf[512];
 
     /* count number of environment variables */
     for (oldPtr = environ; *oldPtr; oldPtr++) ;

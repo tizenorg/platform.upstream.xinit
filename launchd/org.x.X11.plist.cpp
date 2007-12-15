@@ -6,9 +6,12 @@
 		<string>org.x.X11</string>
 	<key>ProgramArguments</key>
 		<array>
-		<string>__bindir__/startx</string>
-		<string>--</string>
+#ifdef __APPLE__
+		<string>__libexecdir__/x11-exec</string>
 		<string>-launchd</string>
+#else
+		<string>__bindir__/startx</string>
+#endif
 		</array>
 	<key>Sockets</key>
 		<dict>
