@@ -38,39 +38,7 @@ appman_PRE = \
 
 appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
 
-# Translate XCOMM into pound sign with sed, rather than passing -DXCOMM=XCOMM
-# to cpp, because that trick does not work on all ANSI C preprocessors.
-# Delete line numbers from the cpp output (-P is not portable, I guess).
-# Allow XCOMM to be preceded by whitespace and provide a means of generating
-# output lines with trailing backslashes.
-# Allow XHASH to always be substituted, even in cases where XCOMM isn't.
-
-CPP_SED_MAGIC = $(SED) -e '/^\#  *[0-9][0-9]*  *.*$$/d' \
-                       -e '/^\#line  *[0-9][0-9]*  *.*$$/d' \
-                       -e '/^[ 	]*XCOMM$$/s/XCOMM/\#/' \
-                       -e '/^[ 	]*XCOMM[^a-zA-Z0-9_]/s/XCOMM/\#/' \
-                       -e '/^[ 	]*XHASH/s/XHASH/\#/' \
-                       -e '/\@\@$$/s/\@\@$$/\\/'
-
-# Strings to replace in man pages
-XORGRELSTRING = @PACKAGE_STRING@
-  XORGMANNAME = X Version 11
-
-MANDEFS =  \
-	-D__xorgversion__="\"$(XORGRELSTRING)\" \"$(XORGMANNAME)\"" \
-	-D__appmansuffix__=$(APP_MAN_SUFFIX) \
-	-D__filemansuffix__=$(FILE_MAN_SUFFIX) \
-	-D__libmansuffix__=$(LIB_MAN_SUFFIX) \
-	-D__miscmansuffix__=$(MISC_MAN_SUFFIX) \
-	-D__XSERVERNAME__=Xorg -D__XCONFIGFILE__=xorg.conf \
-	-D__xinitdir__=$(XINITDIR) \
-	-D__bindir__=$(bindir) \
-	-DSHELL_CMD=$(SHELL_CMD) $(ARCHMANDEFS)
-
-SUFFIXES = .$(APP_MAN_SUFFIX) .man
-
-.man.$(APP_MAN_SUFFIX):
-	$(RAWCPP) $(RAWCPPFLAGS) $(MANDEFS) $(EXTRAMANDEFS) < $< | $(CPP_SED_MAGIC) > $@
+include $(top_srcdir)/cpprules.in
 
 xinitrcdir = $(XINITDIR)
 
@@ -84,15 +52,12 @@ PROGCPPDEFS = \
 	-DXAUTH=@XAUTH@ \
 	-DXINIT=@XINIT@
 
-SCRIPTDEFS = \
+CPP_FILES_FLAGS = \
 	-DXINITDIR=$(XINITDIR) $(PROGCPPDEFS) -DLIBDIR=$(libdir) \
 	-DSHELL_CMD=$(SHELL_CMD) $(STARTX_COOKIE_FLAGS)
 
-xinitrc: xinitrc.cpp
-	$(RAWCPP) $(SCRIPTDEFS) < $(srcdir)/xinitrc.cpp | $(CPP_SED_MAGIC) > $@
-
+xinitrc: xinitrc.cpp Makefile
 startx: startx.cpp Makefile
-	$(RAWCPP) $(SCRIPTDEFS) < $(srcdir)/startx.cpp | $(CPP_SED_MAGIC) > $@
 
 xinitrc_DATA = xinitrc
 
@@ -107,3 +72,10 @@ ChangeLog:
 	(GIT_DIR=$(top_srcdir)/.git git-log > .changelog.tmp && mv .changelog.tmp ChangeLog; rm -f .changelog.tmp) || (touch ChangeLog; echo 'git directory not found: installing possibly empty changelog.' >&2)
 
 dist-hook: ChangeLog
+
+if LAUNCHD
+LAUNCHD_SUBDIRS = launchd
+endif
+
+SUBDIRS = $(LAUNCHD_SUBDIRS)
+DIST_SUBDIRS = launchd

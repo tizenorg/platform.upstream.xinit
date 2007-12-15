@@ -21,3 +21,6 @@ xinit
 xinit.1
 xinitrc
 *~
+*.o
+launchd/org.x.X11.plist
+launchd/x11-exec

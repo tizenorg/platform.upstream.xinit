@@ -91,6 +91,33 @@ AC_ARG_WITH(xinit,
 	[XINIT="$withval"],
 	[XINIT="$DEFAULT_XINIT"])
 
+AC_ARG_WITH(launchd,          AS_HELP_STRING([--with-launchd], [Build with suppo
+rt for Apple's launchd (default: auto)]), [LAUNCHD=$withval], [LAUNCHD=auto])
+AC_ARG_WITH(launchagents-dir,AS_HELP_STRING([--with-launchagents-dir=PATH], [Pat
+h to launchd's LaunchAgents directory (default: /Library/LaunchAgents)]),
+                                [ launchagentsdir="${withval}" ],
+                                [ launchagentsdir="/Library/LaunchAgents" ])
+AC_SUBST([launchagentsdir])
+
+if test "x$LAUNCHD" = "xauto"; then
+	unset LAUNCHD
+	AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
+fi
+
+if test "x$LAUNCHD" = "xyes" ; then
+	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
+
+	# For now, this is how we find X11.app on OS-X...
+	# A future version of launchd should let us do this cleaner
+	case $host_os in
+		darwin*)
+			XSERVER=\'\`'$(libexecdir)/x11-exec'\`\'
+			AM_CONDITIONAL(APPLE, true)
+	;;
+	esac
+fi
+AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
+
 # Checks for pkg-config packages
 PKG_CHECK_MODULES(XINIT, x11)
 
@@ -148,3 +175,4 @@ XORG_MANPAGE_SECTIONS
 XORG_RELEASE_VERSION
 
 AC_OUTPUT([Makefile])
+AC_OUTPUT([launchd/Makefile])
