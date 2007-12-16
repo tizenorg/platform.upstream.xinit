@@ -27,6 +27,10 @@ bin_SCRIPTS = startx
 xinit_CFLAGS = $(XINIT_CFLAGS) -DXINITDIR=\"$(XINITDIR)\" -DBINDIR=\"$(bindir)\"
 xinit_LDADD = $(XINIT_LIBS)
 
+if APPLE
+xinit_LDFLAGS = -framework CoreServices
+endif
+
 xinit_SOURCES =	\
         xinit.c
 
@@ -54,14 +58,21 @@ PROGCPPDEFS = \
 
 CPP_FILES_FLAGS = \
 	-DXINITDIR=$(XINITDIR) $(PROGCPPDEFS) -DLIBDIR=$(libdir) \
-	-DSHELL_CMD=$(SHELL_CMD) $(STARTX_COOKIE_FLAGS)
+	-DSHELL_CMD=$(SHELL_CMD) $(STARTX_COOKIE_FLAGS) \
+	-D__libexecdir__="$(libexecdir)" \
+	-D__bindir__="$(bindir)"
+
+if LAUNCHD
+launchagents_PRE = org.x.X11.plist.pre
+launchagents_DATA = $(launchagents_PRE:plist.pre=plist)
+endif
 
 xinitrc: xinitrc.cpp Makefile
 startx: startx.cpp Makefile
 
 xinitrc_DATA = xinitrc
 
-CLEANFILES = xinitrc startx $(appman_DATA)
+CLEANFILES = xinitrc startx $(appman_DATA) $(launchagents_DATA)
 
 EXTRA_DIST = xinitrc.cpp startx.cpp $(appman_PRE)	\
 		startx.cmd xinitrc.cmd xinit.def ChangeLog autogen.sh
@@ -72,10 +83,3 @@ ChangeLog:
 	(GIT_DIR=$(top_srcdir)/.git git-log > .changelog.tmp && mv .changelog.tmp ChangeLog; rm -f .changelog.tmp) || (touch ChangeLog; echo 'git directory not found: installing possibly empty changelog.' >&2)
 
 dist-hook: ChangeLog
-
-if LAUNCHD
-LAUNCHD_SUBDIRS = launchd
-endif
-
-SUBDIRS = $(LAUNCHD_SUBDIRS)
-DIST_SUBDIRS = launchd
