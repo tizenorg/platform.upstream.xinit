@@ -114,8 +114,13 @@ if test "x$LAUNCHD" = "xyes" ; then
 			# A future version of launchd should let us do this cleaner
 			#XSERVER=\'\`'$(libexecdir)/x11-exec'\`\'
 			AM_CONDITIONAL(APPLE, true)
-	;;
+		;;
+		*)
+			AM_CONDITIONAL(APPLE, false)
+		;;
 	esac
+else
+	AM_CONDITIONAL(APPLE,false)
 fi
 AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
 
