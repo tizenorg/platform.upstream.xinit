@@ -71,6 +71,21 @@ defaultserverargs=""
 clientargs=""
 serverargs=""
 
+#ifdef __APPLE__
+if [ `defaults read org.x.X11 no_auth` = 0 ] ; then
+    enable_xauth=1
+else
+    enable_xauth=0
+fi
+
+if [ `defaults read org.x.X11 nolisten_tcpip` = 1 ] ; then
+    defaultserverargs="-nolisten tcp"
+fi
+#else
+enable_xauth=1
+#endif
+
+
 if [ -f $userclientrc ]; then
     defaultclientargs=$userclientrc
 elif [ -f $sysclientrc ]; then
@@ -163,65 +178,67 @@ if [ x"$server" = x ]; then
     fi
 fi
 
-if [ x"$XAUTHORITY" = x ]; then
-    XAUTHORITY=$HOME/.Xauthority
-    export XAUTHORITY
-fi
+if [ x"$enable_xauth" = x1 ] ; then
+    if [ x"$XAUTHORITY" = x ]; then
+        XAUTHORITY=$HOME/.Xauthority
+        export XAUTHORITY
+    fi
 
-removelist=
+    removelist=
 
-XCOMM set up default Xauth info for this machine
-case `uname` in
-Linux*)
-	if [ -z "`hostname --version 2>&1 | grep GNU`" ]; then
-		hostname=`hostname -f`
-	else
-		hostname=`hostname`
-	fi
-	;;
-*)
-	hostname=`hostname`
-	;;
-esac
+    XCOMM set up default Xauth info for this machine
+    case `uname` in
+    Linux*)
+        if [ -z "`hostname --version 2>&1 | grep GNU`" ]; then
+            hostname=`hostname -f`
+        else
+            hostname=`hostname`
+        fi
+        ;;
+    *)
+        hostname=`hostname`
+        ;;
+    esac
 
-authdisplay=${display:-:0}
+    authdisplay=${display:-:0}
 #if defined(HAS_COOKIE_MAKER) && defined(MK_COOKIE)
-mcookie=`MK_COOKIE`
+    mcookie=`MK_COOKIE`
 #else
-mcookie=`dd if=/dev/random bs=16 count=1 2>/dev/null | hexdump -e \\"%08x\\"`
-if test x"$mcookie" = x; then
-                echo "Couldn't create cookie"
-                exit 1
-fi
+    mcookie=`dd if=/dev/random bs=16 count=1 2>/dev/null | hexdump -e \\"%08x\\"`
+    if test x"$mcookie" = x; then
+        echo "Couldn't create cookie"
+        exit 1
+    fi
 #endif
-dummy=0
+    dummy=0
 
-XCOMM create a file with auth information for the server. ':0' is a dummy.
-xserverauthfile=$HOME/.serverauth.$$
-trap "rm -f $xserverauthfile" HUP INT QUIT ILL TRAP KILL BUS TERM
-xauth -q -f $xserverauthfile << EOF
+    XCOMM create a file with auth information for the server. ':0' is a dummy.
+    xserverauthfile=$HOME/.serverauth.$$
+    trap "rm -f $xserverauthfile" HUP INT QUIT ILL TRAP KILL BUS TERM
+    xauth -q -f $xserverauthfile << EOF
 add :$dummy . $mcookie
 EOF
-serverargs=${serverargs}" -auth "${xserverauthfile}
+    serverargs=${serverargs}" -auth "${xserverauthfile}
 
-XCOMM now add the same credentials to the client authority file
-XCOMM if '$displayname' already exists do not overwrite it as another
-XCOMM server man need it. Add them to the '$xserverauthfile' instead.
-for displayname in $authdisplay $hostname$authdisplay; do
-     authcookie=`XAUTH list "$displayname" @@
-       | sed -n "s/.*$displayname[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
-    if [ "z${authcookie}" = "z" ] ; then
-        XAUTH -q << EOF 
+    XCOMM now add the same credentials to the client authority file
+    XCOMM if '$displayname' already exists do not overwrite it as another
+    XCOMM server man need it. Add them to the '$xserverauthfile' instead.
+    for displayname in $authdisplay $hostname$authdisplay; do
+        authcookie=`XAUTH list "$displayname" @@
+        | sed -n "s/.*$displayname[[:space:]*].*[[:space:]*]//p"` 2>/dev/null;
+        if [ "z${authcookie}" = "z" ] ; then
+            XAUTH -q << EOF 
 add $displayname . $mcookie
 EOF
-	removelist="$displayname $removelist"
-    else
-        dummy=$(($dummy+1));
-        XAUTH -q -f $xserverauthfile << EOF
+        removelist="$displayname $removelist"
+        else
+            dummy=$(($dummy+1));
+            XAUTH -q -f $xserverauthfile << EOF
 add :$dummy . $authcookie
 EOF
-    fi
-done
+        fi
+    done
+fi
 
 #if defined(__SCO__) || defined(__UNIXWARE__)
 if [ "$REMOTE_SERVER" = "TRUE" ]; then
@@ -233,13 +250,15 @@ fi
 XINIT $client $clientargs -- $server $display $serverargs
 #endif
 
-if [ x"$removelist" != x ]; then
-    XAUTH remove $removelist
+if [ x"$enable_xauth" = x1 ] ; then
+    if [ x"$removelist" != x ]; then
+        XAUTH remove $removelist
+    fi
+    if [ x"$xserverauthfile" != x ]; then
+        rm -f $xserverauthfile
+    fi
 fi
-if [ x"$xserverauthfile" != x ]; then
-    rm -f $xserverauthfile
-fi
-    
+
 /*
  * various machines need special cleaning up
  */
