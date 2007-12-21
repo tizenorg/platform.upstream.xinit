@@ -6,6 +6,10 @@
 		<string>org.x.X11</string>
 	<key>ProgramArguments</key>
 		<array>
+#ifdef __APPLE__
+		<string>/bin/bash</string>
+		<string>--login</string>
+#endif
 		<string>__bindir__/startx</string>
 #ifdef __APPLE__
 		<string>--</string>
