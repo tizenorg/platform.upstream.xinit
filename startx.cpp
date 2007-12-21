@@ -72,13 +72,13 @@ clientargs=""
 serverargs=""
 
 #ifdef __APPLE__
-if [ `defaults read org.x.X11 no_auth` = 0 ] ; then
+if [ x`defaults read org.x.X11 no_auth` = x0 ] ; then
     enable_xauth=1
 else
     enable_xauth=0
 fi
 
-if [ `defaults read org.x.X11 nolisten_tcpip` = 1 ] ; then
+if [ x`defaults read org.x.X11 nolisten_tcp` = x1 ] ; then
     defaultserverargs="-nolisten tcp"
 fi
 #else
