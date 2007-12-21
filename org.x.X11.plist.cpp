@@ -11,10 +11,6 @@
 		<string>--login</string>
 #endif
 		<string>__bindir__/startx</string>
-#ifdef __APPLE__
-		<string>--</string>
-		<string>-launchd</string>
-#endif
 		</array>
 	<key>Sockets</key>
 		<dict>
