@@ -72,15 +72,21 @@ clientargs=""
 serverargs=""
 
 #ifdef __APPLE__
-if [ x`defaults read org.x.X11 no_auth` = x0 ] ; then
+if [ x`defaults read org.x.X11 no_auth` = x0 ] || ! defaults read org.x.X11 no_auth ; then
     enable_xauth=1
 else
     enable_xauth=0
 fi
 
 if [ x`defaults read org.x.X11 nolisten_tcp` = x1 ] ; then
-    defaultserverargs="-nolisten tcp"
+    defaultserverargs="$defaultserverargs -nolisten tcp"
 fi
+
+for ((d=0; ; d++)) ; do
+    [[ -e /tmp/.X$d-lock ]] || break
+done
+defaultdisplay=":$d"
+
 #else
 enable_xauth=1
 #endif
@@ -173,6 +179,9 @@ if [ x"$server" = x ]; then
     XCOMM if no server arguments or display either, use rc file instead
     if [ x"$serverargs" = x -a x"$display" = x ]; then
 	server="$defaultserverargs"
+#ifdef __APPLE__
+	display="$defaultdisplay"
+#endif
     else
 	server=$defaultserver
     fi
