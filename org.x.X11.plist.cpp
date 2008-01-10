@@ -7,18 +7,18 @@
 	<key>ProgramArguments</key>
 		<array>
 #ifdef __APPLE__
-		<string>/bin/bash</string>
-		<string>--login</string>
+			<string>/bin/bash</string>
+			<string>--login</string>
 #endif
-		<string>__bindir__/startx</string>
+			<string>__bindir__/startx</string>
 		</array>
 	<key>Sockets</key>
 		<dict>
-		<key>:0</key>
-			<dict>
-			<key>SecureSocketWithKey</key>
-				<string>DISPLAY</string>
-			</dict>
+			<key>:0</key>
+				<dict>
+					<key>SecureSocketWithKey</key>
+						<string>DISPLAY</string>
+				</dict>
 		</dict>
 	<key>ServiceIPC</key>
 		<true/>

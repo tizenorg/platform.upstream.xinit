@@ -13,37 +13,44 @@ XCOMM Site administrators are STRONGLY urged to write nicer versions.
 XCOMM
 XCOMM $XFree86: xc/programs/xinit/startx.cpp,v 3.16tsi Exp $
 
-#if defined(__SCO__) || defined(__UNIXWARE__)
+#if defined(__SCO__) || defined(__UNIXWARE__) || defined(__APPLE__)
 
 XCOMM Check for /usr/bin/X11 and BINDIR in the path, if not add them.
 XCOMM This allows startx to be placed in a place like /usr/bin or /usr/local/bin
 XCOMM and people may use X without changing their PATH.
 XCOMM Note that we put our own bin directory at the front of the path, and
-XCOMM the standard SCO path at the back, since if you are using the Xorg
+XCOMM the standard system path at the back, since if you are using the Xorg
 XCOMM server theres a pretty good chance you want to bias the Xorg clients
-XCOMM over the old SCO X11R5 clients.
+XCOMM over the old system's clients.
 
 XCOMM First our compiled path
-
-bindir=BINDIR
-scobindir=/usr/bin/X11
+bindir=__bindir__
 
 case $PATH in
-  *:$bindir | *:$bindir:* | $bindir:*) ;;
-  *) PATH=$bindir:$PATH ;;
+    *:$bindir | *:$bindir:* | $bindir:*) ;;
+    *) PATH=$bindir:$PATH ;;
 esac
 
-XCOMM Now the "SCO" compiled path
+XCOMM Now the "old" compiled path
+#ifdef __APPLE__
+olddbindir=/usr/X11R6/bin
+#else
+oldbindir=/usr/bin/X11
+#endif
 
-case $PATH in
-  *:$scobindir | *:$scobindir:* | $scobindir:*) ;;
-  *) PATH=$PATH:$scobindir ;;
-esac
+if [ -d "$oldbindir" ] ; then
+    case $PATH in
+        *:$oldbindir | *:$oldbindir:* | $oldbindir:*) ;;
+        *) PATH=$PATH:$oldbindir ;;
+    esac
+fi
 
 XCOMM Bourne shell does not automatically export modified environment variables
 XCOMM so export the new PATH just in case the user changes the shell
 export PATH
+#endif
 
+#if defined(__SCO__) || defined(__UNIXWARE__)
 XCOMM Set up the XMERGE env var so that dos merge is happy under X
 
 if [ -f /usr/lib/merge/xmergeset.sh ]; then
