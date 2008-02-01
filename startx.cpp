@@ -33,7 +33,7 @@ esac
 
 XCOMM Now the "old" compiled path
 #ifdef __APPLE__
-olddbindir=/usr/X11R6/bin
+oldbindir=/usr/X11R6/bin
 #else
 oldbindir=/usr/bin/X11
 #endif
