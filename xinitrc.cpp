@@ -70,7 +70,27 @@ XCOMM This is the fallback case if nothing else is executed above
 #endif /* !defined(__SCO__)  && !defined(__UNIXWARE__) */
 
 #ifdef __APPLE__
+
+if [ -x /usr/X11/bin/xset ] ; then
+	fontpath="/usr/X11/lib/X11/fonts/misc/,/usr/X11/lib/X11/fonts/TTF/,/usr/X11/lib/X11/fonts/OTF,/usr/X11/lib/X11/fonts/Type1/,/usr/X11/lib/X11/fonts/75dpi:unscaled/,/usr/X11/lib/X11/fonts/100dpi/:unscaled,/usr/X11/lib/X11/fonts/75dpi:unscaled/,/usr/X11/lib/X11/fonts/100dpi/:unscaled"
+
+	if [ -d "$HOME/Library/Fonts" ] ; then
+		if [ ! -e $HOME/Library/Fonts/fonts.dir ] ; then
+			[ -x /usr/X11/bin/mkfontdir ] && mkfontdir $HOME/Library/Fonts
+			[ -x /usr/X11/bin/mkfontscale ] && mkfontscale $HOME/Library/Fonts
+		fi
+		[ -e $HOME/Library/Fonts/fonts.dir ] && fontpath="$fontpath,$HOME/Library/Fonts"
+	fi
+
+	[ -e /Library/Fonts/fonts.dir ] && fontpath="$fontpath,/Library/Fonts"
+	[ -e /System/Library/Fonts/fonts.dir ] && fontpath="$fontpath,/System/Library/Fonts"
+
+	/usr/X11/bin/xset fp= "$fontpath"
+	unset fontpath
+fi
+
 [ -x /usr/bin/quartz-wm ] && exec /usr/bin/quartz-wm
+
 #endif
 
 TWM &
