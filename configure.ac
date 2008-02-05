@@ -98,7 +98,6 @@ AC_ARG_WITH(launchagents-dir,AS_HELP_STRING([--with-launchagents-dir=PATH], [Pat
 h to launchd's LaunchAgents directory (default: /Library/LaunchAgents)]),
                                 [ launchagentsdir="${withval}" ],
                                 [ launchagentsdir="/Library/LaunchAgents" ])
-AC_SUBST([launchagentsdir])
 
 if test "x$LAUNCHD" = "xauto"; then
 	unset LAUNCHD
@@ -121,7 +120,9 @@ if test "x$LAUNCHD" = "xyes" ; then
 	esac
 else
 	AM_CONDITIONAL(APPLE,false)
+        launchagentsdir=""
 fi
+AC_SUBST([launchagentsdir])
 AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
 
 # Checks for pkg-config packages
