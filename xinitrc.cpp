@@ -87,17 +87,14 @@ XCOMM This is the fallback case if nothing else is executed above
 
 #ifdef __APPLE__
 
+[ -x /usr/X11/bin/font_cache.sh ] && /usr/X11/bin/font_cache.sh
+
 if [ -x /usr/X11/bin/xset ] ; then
 	fontpath="/usr/X11/lib/X11/fonts/misc/,/usr/X11/lib/X11/fonts/TTF/,/usr/X11/lib/X11/fonts/OTF,/usr/X11/lib/X11/fonts/Type1/,/usr/X11/lib/X11/fonts/75dpi:unscaled/,/usr/X11/lib/X11/fonts/100dpi/:unscaled,/usr/X11/lib/X11/fonts/75dpi:unscaled/,/usr/X11/lib/X11/fonts/100dpi/:unscaled"
 
-	if [ -d "$HOME/Library/Fonts" ] ; then
-		if [ ! -e $HOME/Library/Fonts/fonts.dir ] ; then
-			[ -x /usr/X11/bin/mkfontdir ] && mkfontdir $HOME/Library/Fonts
-			[ -x /usr/X11/bin/mkfontscale ] && mkfontscale $HOME/Library/Fonts
-		fi
-		[ -e $HOME/Library/Fonts/fonts.dir ] && fontpath="$fontpath,$HOME/Library/Fonts"
-	fi
-
+	[ -e $HOME/.fonts/fonts.dir ] && fontpath="$fontpath,$HOME/.fonts"
+	[ -e $HOME/Library/Fonts/fonts.dir ] && fontpath="$fontpath,$HOME/Library/Fonts"
+	[ -e /Library/Fonts/fonts.dir ] && fontpath="$fontpath,/Library/Fonts"
 	[ -e /Library/Fonts/fonts.dir ] && fontpath="$fontpath,/Library/Fonts"
 	[ -e /System/Library/Fonts/fonts.dir ] && fontpath="$fontpath,/System/Library/Fonts"
 
