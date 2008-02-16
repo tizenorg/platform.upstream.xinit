@@ -74,7 +74,7 @@ xinitrc_DATA = xinitrc
 
 CLEANFILES = xinitrc startx $(appman_DATA) $(launchagents_DATA)
 
-EXTRA_DIST = xinitrc.cpp startx.cpp $(appman_PRE)	\
+EXTRA_DIST = xinitrc.cpp startx.cpp org.x.X11.plist.cpp $(appman_PRE)	\
 		startx.cmd xinitrc.cmd xinit.def ChangeLog autogen.sh
 
 .PHONY: ChangeLog
