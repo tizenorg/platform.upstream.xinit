@@ -79,7 +79,30 @@ clientargs=""
 serverargs=""
 
 #ifdef __APPLE__
-if [ x`defaults read org.x.X11 no_auth` = x0 ] || ! defaults read org.x.X11 no_auth ; then
+
+XCOMM Initialize defaults (this will cut down on "safe" error messages)
+if ! defaults read org.x.X11 cache_fonts >& /dev/null ; then
+    defaults write org.x.X11 cache_fonts -bool true
+fi
+
+if ! defaults read org.x.X11 no_auth >& /dev/null ; then
+    defaults write org.x.X11 no_auth -bool false
+fi
+
+if ! defaults read org.x.X11 nolisten_tcp >& /dev/null ; then
+    defaults write org.x.X11 nolisten_tcp -bool true
+fi
+
+XCOMM First, start caching fonts
+if [ x`defaults read org.x.X11 cache_fonts` = x1 ] ; then
+    if [ -x /usr/X11/bin/font_cache.sh ] ; then
+        /usr/X11/bin/font_cache.sh &
+    elif [ -x /usr/X11/bin/fc-cache ] ; then
+        /usr/X11/bin/fc-cache &
+    fi
+fi
+
+if [ x`defaults read org.x.X11 no_auth` = x0 ] ; then
     enable_xauth=1
 else
     enable_xauth=0
