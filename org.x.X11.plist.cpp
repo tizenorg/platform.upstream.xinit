@@ -9,6 +9,7 @@
 #ifdef __APPLE__
 			<string>/bin/bash</string>
 			<string>--login</string>
+			<string>-c</string>
 #endif
 			<string>__bindir__/startx</string>
 		</array>
