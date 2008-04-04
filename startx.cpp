@@ -208,9 +208,12 @@ XCOMM process server arguments
 if [ x"$server" = x ]; then
     XCOMM if no server arguments or display either, use rc file instead
     if [ x"$serverargs" = x -a x"$display" = x ]; then
-	server="$defaultserverargs"
 #ifdef __APPLE__
+	server=$defaultserver
+	serverargs=$defaultserverargs
 	display="$defaultdisplay"
+#else
+	server="$defaultserverargs"
 #endif
     else
 	server=$defaultserver
