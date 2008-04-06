@@ -3,14 +3,12 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-		<string>org.x.X11</string>
+		<string>org.x.startx</string>
 	<key>ProgramArguments</key>
 		<array>
-#ifdef __APPLE__
 			<string>/bin/bash</string>
 			<string>--login</string>
 			<string>-c</string>
-#endif
 			<string>__bindir__/startx</string>
 		</array>
 	<key>Sockets</key>

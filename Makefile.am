@@ -63,7 +63,7 @@ CPP_FILES_FLAGS = \
 	-D__bindir__="$(bindir)"
 
 if LAUNCHD
-launchagents_PRE = org.x.X11.plist.pre
+launchagents_PRE = org.x.startx.plist.pre
 launchagents_DATA = $(launchagents_PRE:plist.pre=plist)
 endif
 
@@ -74,7 +74,7 @@ xinitrc_DATA = xinitrc
 
 CLEANFILES = xinitrc startx $(appman_DATA) $(launchagents_DATA)
 
-EXTRA_DIST = xinitrc.cpp startx.cpp org.x.X11.plist.cpp $(appman_PRE)	\
+EXTRA_DIST = xinitrc.cpp startx.cpp org.x.startx.plist.cpp $(appman_PRE)	\
 		startx.cmd xinitrc.cmd xinit.def ChangeLog autogen.sh
 
 .PHONY: ChangeLog
