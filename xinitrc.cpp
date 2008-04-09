@@ -24,20 +24,20 @@ if [ -f $sysmodmap ]; then
     XMODMAP $sysmodmap
 fi
 
-if [ -f $userresources ]; then
+if [ -f "$userresources" ]; then
 #ifdef __APPLE__
     if [ -x /usr/bin/cpp ] ; then
-        XRDB -merge $userresources
+        XRDB -merge "$userresources"
     else
-        XRDB -nocpp -merge $userresources
+        XRDB -nocpp -merge "$userresources"
     fi
 #else
-    XRDB -merge $userresources
+    XRDB -merge "$userresources"
 #endif
 fi
 
-if [ -f $usermodmap ]; then
-    XMODMAP $usermodmap
+if [ -f "$usermodmap" ]; then
+    XMODMAP "$usermodmap"
 fi
 
 XCOMM start some nice programs
