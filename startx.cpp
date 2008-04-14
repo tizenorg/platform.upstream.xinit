@@ -95,7 +95,9 @@ fi
 
 XCOMM First, start caching fonts
 if [ x`defaults read org.x.X11 cache_fonts` = x1 ] ; then
-    if [ -x /usr/X11/bin/font_cache.sh ] ; then
+    if [ -x /usr/X11/bin/font_cache ] ; then
+        /usr/X11/bin/font_cache &
+    elif [ -x /usr/X11/bin/font_cache.sh ] ; then
         /usr/X11/bin/font_cache.sh &
     elif [ -x /usr/X11/bin/fc-cache ] ; then
         /usr/X11/bin/fc-cache &
