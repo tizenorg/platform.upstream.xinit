@@ -102,8 +102,8 @@ if [ x`defaults read org.x.X11 cache_fonts` = x1 ] ; then
     fi
 fi
 
-if [ -x /usr/X11/bin/privileged_startx ] ; then
-	/usr/X11/bin/privileged_startx &
+if [ -x XINITDIR/privileged_startx ] ; then
+	XINITDIR/privileged_startx &
 fi
 
 if [ x`defaults read org.x.X11 no_auth` = x0 ] ; then
