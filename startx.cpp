@@ -105,7 +105,9 @@ if [ x`defaults read org.x.X11 cache_fonts` = x1 ] ; then
 fi
 
 if [ -x XINITDIR/privileged_startx ] ; then
-	XINITDIR/privileged_startx &
+	# Don't push this into the background becasue it can cause
+	# a race to create /tmp/.X11-unix
+	XINITDIR/privileged_startx
 fi
 
 if [ x`defaults read org.x.X11 no_auth` = x0 ] ; then
