@@ -92,12 +92,13 @@ AC_ARG_WITH(xinit,
 	[XINIT="$withval"],
 	[XINIT="$DEFAULT_XINIT"])
 
-AC_ARG_WITH(launchd,          AS_HELP_STRING([--with-launchd], [Build with suppo
-rt for Apple's launchd (default: auto)]), [LAUNCHD=$withval], [LAUNCHD=auto])
-AC_ARG_WITH(launchagents-dir,AS_HELP_STRING([--with-launchagents-dir=PATH], [Pat
-h to launchd's LaunchAgents directory (default: /Library/LaunchAgents)]),
+AC_ARG_WITH(launchd,            AS_HELP_STRING([--with-launchd], [Build with support for Apple's launchd (default: auto)]), [LAUNCHD=$withval], [LAUNCHD=auto])
+AC_ARG_WITH(launchagents-dir,   AS_HELP_STRING([--with-launchagents-dir=PATH], [Path to launchd's LaunchAgents directory (default: /Library/LaunchAgents)]),
                                 [ launchagentsdir="${withval}" ],
                                 [ launchagentsdir="/Library/LaunchAgents" ])
+AC_ARG_WITH(launchdaemons-dir,  AS_HELP_STRING([--with-launchdaemons-dir=PATH], [Path to launchd's LaunchDaemonss directory (default: /Library/LaunchDaemons)]),
+                                [ launchdaemonsdir="${withval}" ],
+                                [ launchdaemonsdir="/Library/LaunchDaemons" ])
 
 if test "x$LAUNCHD" = "xauto"; then
 	unset LAUNCHD
@@ -121,8 +122,10 @@ if test "x$LAUNCHD" = "xyes" ; then
 else
 	AM_CONDITIONAL(APPLE,false)
         launchagentsdir=""
+        launchdaemonsdir=""
 fi
 AC_SUBST([launchagentsdir])
+AC_SUBST([launchdaemonsdir])
 AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
 
 # Checks for pkg-config packages
@@ -182,3 +185,4 @@ XORG_MANPAGE_SECTIONS
 XORG_RELEASE_VERSION
 
 AC_OUTPUT([Makefile])
+AC_OUTPUT([privileged_startx/Makefile])

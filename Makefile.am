@@ -63,9 +63,13 @@ CPP_FILES_FLAGS = \
 	-D__bindir__="$(bindir)"
 
 if LAUNCHD
-launchagents_PRE = org.x.startx.plist.pre
-launchagents_DATA = $(launchagents_PRE:plist.pre=plist)
+launchagents_PRE = org.x.startx.plist.cpp
+launchagents_DATA = $(launchagents_PRE:plist.cpp=plist)
+
+SUBDIRS = privileged_startx
 endif
+
+DIST_SUBDIRS = privileged_startx
 
 xinitrc: xinitrc.cpp Makefile
 startx: startx.cpp Makefile
