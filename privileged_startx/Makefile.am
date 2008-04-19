@@ -37,12 +37,14 @@ AM_CPPFLAGS = -DXINITDIR=\"$(xinitrcdir)\" -DSCRIPTDIR=\"$(privstartxdir)\" -DBI
 
 CPP_FILES_FLAGS = -DXINITDIR="$(xinitrcdir)" -DSCRIPTDIR="$(privstartxdir)" -DBINDIR="$(bindir)"
 
-privileged_startx_SOURCES =	\
-	privileged_startxServer.c \
-	privileged_startxUser.c \
+dist_privileged_startx_SOURCES = \
 	server.c \
 	client.c \
 	privileged_startx.c
+
+nodist_privileged_startx_SOURCES = \
+	privileged_startxServer.c \
+	privileged_startxUser.c
 
 BUILT_SOURCES = \
 	privileged_startxServer.c \
@@ -56,9 +58,17 @@ launchdaemons_DATA = $(launchdaemons_PRE:plist.cpp=plist)
 10-tmpdirs: 10-tmpdirs.cpp Makefile
 20-font_cache: 20-font_cache.cpp Makefile
 
-CLEANFILES = $(privstartx_SCRIPTS) $(BUILT_SOURCES) $(launchdaemons_DATA)
+CLEANFILES = \
+	$(privstartx_SCRIPTS) \
+	$(BUILT_SOURCES) \
+	$(launchdaemons_DATA)
 
-EXTRA_DIST = 10-tmpdirs.cpp 20-font_cache.cpp org.x.privileged_startx.plist.cpp privileged_startx.defs
+EXTRA_DIST = \
+	10-tmpdirs.cpp \
+	20-font_cache.cpp \
+	org.x.privileged_startx.plist.cpp \
+	privileged_startx.defs \
+	privileged_startx_types.h
 
 $(BUILT_SOURCES): privileged_startx.defs
 	mig -sheader privileged_startxServer.h privileged_startx.defs
