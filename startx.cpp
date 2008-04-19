@@ -75,6 +75,7 @@ defaultclient=XTERM
 defaultserver=XSERVER
 defaultclientargs=""
 defaultserverargs=""
+defaultdisplay=":0"
 clientargs=""
 serverargs=""
 
@@ -216,13 +217,9 @@ XCOMM process server arguments
 if [ x"$server" = x ]; then
     XCOMM if no server arguments or display either, use rc file instead
     if [ x"$serverargs" = x -a x"$display" = x ]; then
-#ifdef __APPLE__
 	server=$defaultserver
 	serverargs=$defaultserverargs
-	display="$defaultdisplay"
-#else
-	server="$defaultserverargs"
-#endif
+	display=$defaultdisplay
     else
 	server=$defaultserver
     fi
