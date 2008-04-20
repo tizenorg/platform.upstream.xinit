@@ -412,10 +412,11 @@ main(int argc, char *argv[], char *envp[])
 
 	    xinitrcbuf[0] = '\0';
 	    if ((cp = getenv ("XINITRC")) != NULL) {
-		strcpy (xinitrcbuf, cp);
+		(void) snprintf (xinitrcbuf, sizeof(xinitrcbuf), "%s", cp);
 		required = True;
 	    } else if ((cp = getenv ("HOME")) != NULL) {
-		(void) sprintf (xinitrcbuf, "%s/%s", cp, XINITRC);
+		(void) snprintf (xinitrcbuf, sizeof(xinitrcbuf),
+				 "%s/%s", cp, XINITRC);
 	    }
 	    if (xinitrcbuf[0]) {
 		if (access (xinitrcbuf, F_OK) == 0) {
@@ -439,10 +440,11 @@ main(int argc, char *argv[], char *envp[])
 
 	    xserverrcbuf[0] = '\0';
 	    if ((cp = getenv ("XSERVERRC")) != NULL) {
-		strcpy (xserverrcbuf, cp);
+		(void) snprintf (xserverrcbuf, sizeof(xserverrcbuf), "%s", cp);
 		required = True;
 	    } else if ((cp = getenv ("HOME")) != NULL) {
-		(void) sprintf (xserverrcbuf, "%s/%s", cp, XSERVERRC);
+		(void) snprintf (xserverrcbuf, sizeof(xserverrcbuf),
+				 "%s/%s", cp, XSERVERRC);
 	    }
 	    if (xserverrcbuf[0]) {
 		if (access (xserverrcbuf, F_OK) == 0) {
@@ -705,6 +707,7 @@ setWindowPath(void)
 	unsigned long num;
 	char nums[10];
 	int numn;
+	size_t len;
 	prop = XInternAtom(xd, "XFree86_VT", False);
 	if (prop == None) {
 #ifdef DEBUG
@@ -760,11 +763,18 @@ setWindowPath(void)
 	windowpath = getenv("WINDOWPATH");
 	numn = snprintf(nums, sizeof(nums), "%lu", num);
 	if (!windowpath) {
-		newwindowpath = malloc(10 + 1 + numn + 1);
-		sprintf(newwindowpath, "WINDOWPATH=%s", nums);
+		len = 10 + 1 + numn + 1;
+		newwindowpath = malloc(len);
+		if (newwindowpath == NULL) 
+		    return;
+		snprintf(newwindowpath, len, "WINDOWPATH=%s", nums);
 	} else {
-		newwindowpath = malloc(10 + 1 + strlen(windowpath) + 1 + numn + 1);
-		sprintf(newwindowpath, "WINDOWPATH=%s:%s", windowpath, nums);
+		len = 10 + 1 + strlen(windowpath) + 1 + numn + 1;
+		newwindowpath = malloc(len);
+		if (newwindowpath == NULL)
+		    return;
+		snprintf(newwindowpath, len, "WINDOWPATH=%s:%s", 
+			 windowpath, nums);
 	}
 	*newenvironlast++ = newwindowpath;
 	*newenvironlast = NULL;
@@ -887,8 +897,7 @@ set_environment(void)
     }
 
     /* put DISPLAY=displayname as first element */
-    strcpy (displaybuf, "DISPLAY=");
-    strcpy (displaybuf + 8, displayNum);
+    snprintf (displaybuf, sizeof(displaybuf), "DISPLAY=%s", displayNum);
     newPtr = newenviron;
     *newPtr++ = displaybuf;
 
