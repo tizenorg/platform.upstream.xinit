@@ -177,7 +177,7 @@ static char *displayNum = NULL;
 static char *program = NULL;
 static Display *xd = NULL;			/* server connection */
 #ifdef __APPLE__
-static char x11_path[PATH_MAX];
+static char x11_path[PATH_MAX + 1];
 #endif
 #ifndef SYSV
 #if defined(__CYGWIN__) || defined(SVR4) || defined(_POSIX_SOURCE) || defined(CSRG_BASED) || defined(__UNIXOS2__) || defined(Lynx) || defined(__APPLE__)
@@ -266,18 +266,17 @@ static void
 Execute(char **vec,		/* has room from up above */
 	char **envp)
 {
-    char *file = vec[0];
 #ifdef __APPLE__
     /* This is ugly, but currently, we need to trick OS-X into thinking X is in
      * the X11.app bundle.  Hopefully UI, icons, etc will eventually be set
      * by Xquartz, but this is how we're doing it for now. -JH
      */
-    if(!strcmp(file, "/usr/X11/bin/X") || !strcmp(file, "/usr/X11/bin/Xquartz") || !strcmp(file, "X") || !strcmp(file, "Xquartz")) {
-        vec[0] = x11_path;
-        fprintf(stderr, "xinit: Detected Xquartz startup, setting file=%s, argv[0]=%s\n", file, vec[0]);
+    if(!strcmp(vec[0], "/usr/X11/bin/X") || !strcmp(vec[0], "/usr/X11/bin/Xquartz") || !strcmp(vec[0], "X") || !strcmp(vec[0], "Xquartz")) {
+        setenv("CFProcessPath", x11_path, 1);
+        fprintf(stderr, "xinit: Detected Xquartz startup, setting CFProcessPath=%s\n", x11_path);
     }
 #endif
-    Execvpe (file, vec, envp);
+    Execvpe (vec[0], vec, envp);
 #ifndef __UNIXOS2__
     if (access (vec[0], R_OK) == 0) {
 	vec--;				/* back it up to stuff shell in */
