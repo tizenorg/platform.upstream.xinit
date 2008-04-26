@@ -27,7 +27,7 @@ bin_SCRIPTS = startx
 xinit_CFLAGS = $(XINIT_CFLAGS) -DXINITDIR=\"$(XINITDIR)\" -DBINDIR=\"$(bindir)\"
 xinit_LDADD = $(XINIT_LIBS)
 
-if APPLE
+if APPLE_LEOPARD
 xinit_LDFLAGS = -framework CoreServices
 endif
 

@@ -40,6 +40,10 @@ in this Software without prior written authorization from The Open Group.
 #include <stdint.h>
 
 #ifdef __APPLE__
+#include <AvailabilityMacros.h>
+#endif
+
+#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
 #include <CoreServices/CoreServices.h>
 #define kX11AppBundleId "org.x.X11"
 #define kX11AppBundlePath "/Contents/MacOS/X11"
@@ -176,7 +180,7 @@ static char **client = clientargv + 2;		/* make sure room for sh .xinitrc args *
 static char *displayNum = NULL;
 static char *program = NULL;
 static Display *xd = NULL;			/* server connection */
-#ifdef __APPLE__
+#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
 static char x11_path[PATH_MAX + 1];
 #endif
 #ifndef SYSV
@@ -228,7 +232,7 @@ sigUsr1(int sig)
 #endif
 }
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
 static void set_x11_path() {
     CFURLRef appURL = NULL;
     OSStatus osstatus = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR(kX11AppBundleId), nil, nil, &appURL);
@@ -266,7 +270,7 @@ static void
 Execute(char **vec,		/* has room from up above */
 	char **envp)
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
     /* This is ugly, but currently, we need to trick OS-X into thinking X is in
      * the X11.app bundle.  Hopefully UI, icons, etc will eventually be set
      * by Xquartz, but this is how we're doing it for now. -JH

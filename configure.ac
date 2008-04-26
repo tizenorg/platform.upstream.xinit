@@ -109,18 +109,15 @@ if test "x$LAUNCHD" = "xyes" ; then
 	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
 
 	case $host_os in
-		darwin*)
-			# For now, this is how we find X11.app on OS-X...
-			# A future version of launchd should let us do this cleaner
-			#XSERVER=\'\`'$(libexecdir)/x11-exec'\`\'
-			AM_CONDITIONAL(APPLE, true)
+		darwin9*|darwin1*)
+			AM_CONDITIONAL(APPLE_LEOPARD, true)
 		;;
 		*)
-			AM_CONDITIONAL(APPLE, false)
+			AM_CONDITIONAL(APPLE_LEOPARD, false)
 		;;
 	esac
 else
-	AM_CONDITIONAL(APPLE,false)
+	AM_CONDITIONAL(APPLE_LEOPARD,false)
         launchagentsdir=""
         launchdaemonsdir=""
 fi
