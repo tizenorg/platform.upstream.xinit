@@ -39,16 +39,6 @@ in this Software without prior written authorization from The Open Group.
 #include <ctype.h>
 #include <stdint.h>
 
-#ifdef __APPLE__
-#include <AvailabilityMacros.h>
-#endif
-
-#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
-#include <CoreServices/CoreServices.h>
-#define kX11AppBundleId "org.x.X11"
-#define kX11AppBundlePath "/Contents/MacOS/X11"
-#endif
-
 #ifdef X_POSIX_C_SOURCE
 #define _POSIX_C_SOURCE X_POSIX_C_SOURCE
 #include <signal.h>
@@ -180,9 +170,6 @@ static char **client = clientargv + 2;		/* make sure room for sh .xinitrc args *
 static char *displayNum = NULL;
 static char *program = NULL;
 static Display *xd = NULL;			/* server connection */
-#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
-static char x11_path[PATH_MAX + 1];
-#endif
 #ifndef SYSV
 #if defined(__CYGWIN__) || defined(SVR4) || defined(_POSIX_SOURCE) || defined(CSRG_BASED) || defined(__UNIXOS2__) || defined(Lynx) || defined(__APPLE__)
 int status;
@@ -232,54 +219,10 @@ sigUsr1(int sig)
 #endif
 }
 
-#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
-static void set_x11_path() {
-    CFURLRef appURL = NULL;
-    OSStatus osstatus = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR(kX11AppBundleId), nil, nil, &appURL);
-
-    switch (osstatus) {
-        case noErr:
-            if (appURL == NULL) {
-                fprintf(stderr, "xinit: Invalid response from LSFindApplicationForInfo(%s)\n", 
-                        kX11AppBundleId);
-                exit(1);
-            }
-            
-            if (!CFURLGetFileSystemRepresentation(appURL, true, (unsigned char *)x11_path, sizeof(x11_path))) {
-                fprintf(stderr, "xinit: Error resolving URL for %s\n", kX11AppBundleId);
-                exit(2);
-            }
-            
-            strlcat(x11_path, kX11AppBundlePath, sizeof(x11_path));
-#ifdef DEBUG
-            fprintf(stderr, "xinit: X11.app = %s\n", x11_path);
-#endif
-            break;
-        case kLSApplicationNotFoundErr:
-            fprintf(stderr, "xinit: Unable to find application for %s\n", kX11AppBundleId);
-            exit(4);
-        default:
-            fprintf(stderr, "xinit: Unable to find application for %s, error code = %d\n", 
-                    kX11AppBundleId, (int)osstatus);
-            exit(5);
-    }
-}
-#endif
-
 static void 
 Execute(char **vec,		/* has room from up above */
 	char **envp)
 {
-#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1050
-    /* This is ugly, but currently, we need to trick OS-X into thinking X is in
-     * the X11.app bundle.  Hopefully UI, icons, etc will eventually be set
-     * by Xquartz, but this is how we're doing it for now. -JH
-     */
-    if(!strcmp(vec[0], "/usr/X11/bin/X") || !strcmp(vec[0], "/usr/X11/bin/Xquartz") || !strcmp(vec[0], "X") || !strcmp(vec[0], "Xquartz")) {
-        setenv("CFProcessPath", x11_path, 1);
-        fprintf(stderr, "xinit: Detected Xquartz startup, setting CFProcessPath=%s\n", x11_path);
-    }
-#endif
     Execvpe (vec[0], vec, envp);
 #ifndef __UNIXOS2__
     if (access (vec[0], R_OK) == 0) {
@@ -307,10 +250,6 @@ main(int argc, char *argv[], char *envp[])
 	int client_args_given = 0, server_args_given = 0;
 	int start_of_client_args, start_of_server_args;
 	struct sigaction sa;
-
-#ifdef __APPLE__
-    set_x11_path();
-#endif
 
 #ifdef __UNIXOS2__
 	envsave = envp;	/* circumvent an EMX problem */
