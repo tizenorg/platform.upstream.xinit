@@ -30,7 +30,7 @@ XCOMM Make sure these are owned by root
 for dir in /tmp/.ICE-unix /tmp/.X11-unix /tmp/.font-unix ; do
 	# Use mktemp rather than mkdir to avoid possible security issue
 	# if $dir exists and is a symlink
-	if mktemp -d ${dir} > /dev/null ; then
+	if mktemp -d ${dir} >& /dev/null ; then
 		chmod 1777 $dir
 		chown root:wheel $dir
 	fi
