@@ -256,11 +256,11 @@ if [ x"$enable_xauth" = x1 ] ; then
     else
         mcookie=`dd if=/dev/random bs=16 count=1 2>/dev/null | hexdump -e \\"%08x\\"`
     fi
+#endif
     if test x"$mcookie" = x; then
         echo "Couldn't create cookie"
         exit 1
     fi
-#endif
     dummy=0
 
     XCOMM create a file with auth information for the server. ':0' is a dummy.
