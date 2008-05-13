@@ -154,9 +154,13 @@ if test "x$MCOOKIE" != x ; then
 fi
 AC_SUBST(STARTX_COOKIE_FLAGS)
 
-# Additional substitutions in xinitrc & man pages
+# Additional substitutions in startx, xinitrc & man pages
 case $host_os in
-    *sco*)	
+    *solaris*)
+	SHELL_CMD="/bin/ksh"
+	ARCHMANDEFS=""
+	;;
+    *sco*)
 	SHELL_CMD="/bin/ksh"
 	ARCHMANDEFS="-D__SCOMAN__"
 	;;
