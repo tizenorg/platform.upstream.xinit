@@ -144,6 +144,9 @@ case $host_os in
 	*openbsd*)
 	MCOOKIE='/usr/sbin/openssl rand -hex 16'
 	;;
+	*solaris*)
+	MCOOKIE="/usr/bin/od -X -A n -N 16 /dev/urandom | /usr/bin/tr -d ' '"
+	;;
 esac
 
 if test "x$MCOOKIE" != x ; then
