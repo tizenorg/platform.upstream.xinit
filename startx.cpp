@@ -13,6 +13,9 @@ XCOMM Site administrators are STRONGLY urged to write nicer versions.
 XCOMM
 XCOMM $XFree86: xc/programs/xinit/startx.cpp,v 3.16tsi Exp $
 
+unset DBUS_SESSION_BUS_ADDRESS
+unset SESSION_MANAGER
+
 #if defined(__SCO__) || defined(__UNIXWARE__) || defined(__APPLE__)
 
 XCOMM Check for /usr/bin/X11 and BINDIR in the path, if not add them.
