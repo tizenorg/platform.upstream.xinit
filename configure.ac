@@ -102,22 +102,19 @@ AC_ARG_WITH(launchdaemons-dir,  AS_HELP_STRING([--with-launchdaemons-dir=PATH], 
 
 if test "x$LAUNCHD" = "xauto"; then
 	unset LAUNCHD
-	AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
+	case $host_os in
+		darwin8*)
+			LAUNCHD=no
+		;;
+		*)
+			AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
+		;;
+	esac
 fi
 
 if test "x$LAUNCHD" = "xyes" ; then
 	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
-
-	case $host_os in
-		darwin9*|darwin1*)
-			AM_CONDITIONAL(APPLE_LEOPARD, true)
-		;;
-		*)
-			AM_CONDITIONAL(APPLE_LEOPARD, false)
-		;;
-	esac
 else
-	AM_CONDITIONAL(APPLE_LEOPARD,false)
         launchagentsdir=""
         launchdaemonsdir=""
 fi
