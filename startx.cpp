@@ -161,12 +161,6 @@ case $1 in
 esac
 #endif
 
-if [ -f $userserverrc ]; then
-    defaultserverargs=$userserverrc
-elif [ -f $sysserverrc ]; then
-    defaultserverargs=$sysserverrc
-fi
-
 whoseargs="client"
 while [ x"$1" != x ]; do
     case "$1" in
@@ -218,13 +212,19 @@ fi
 
 XCOMM process server arguments
 if [ x"$server" = x ]; then
-    XCOMM if no server arguments or display either, use rc file instead
+    server=$defaultserver
+
+    XCOMM if no server arguments or display either, use defaults
     if [ x"$serverargs" = x -a x"$display" = x ]; then
-	server=$defaultserver
+	XCOMM For compatibility reasons, only use xserverrc if there were no server command line arguments
+	if [ -f $userserverrc ]; then
+	    server=$userserverrc
+	elif [ -f $sysserverrc ]; then
+	    server=$sysserverrc
+	fi
+
 	serverargs=$defaultserverargs
 	display=$defaultdisplay
-    else
-	server=$defaultserver
     fi
 fi
 
