@@ -16,6 +16,6 @@
 			<string>SCRIPTDIR</string>
 		</array>
 	<key>TimeOut</key>
-		<integer>60</integer>
+		<integer>120</integer>
 </dict>
 </plist>
