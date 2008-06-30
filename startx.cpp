@@ -133,19 +133,6 @@ defaultdisplay=":$d"
 enable_xauth=1
 #endif
 
-
-if [ -f $userclientrc ]; then
-    defaultclientargs=$userclientrc
-elif [ -f $sysclientrc ]; then
-    defaultclientargs=$sysclientrc
-#if defined(__SCO__) || defined(__UNIXWARE__)
-elif [ -f $scouserclientrc ]; then
-    defaultclientargs=$scouserclientrc
-elif [ -f $scosysclientrc ]; then
-    defaultclientargs=$scosysclientrc
-#endif
-fi
-
 #if defined(__SCO__) || defined(__UNIXWARE__)
 
 XCOMM SCO -t option: do not start an X server
@@ -202,11 +189,23 @@ done
 
 XCOMM process client arguments
 if [ x"$client" = x ]; then
+    client=$defaultclient
+
     XCOMM if no client arguments either, use rc file instead
     if [ x"$clientargs" = x ]; then
-	client="$defaultclientargs"
-    else
-	client=$defaultclient
+        if [ -f "$userclientrc" ]; then
+            client=$userclientrc
+        elif [ -f "$sysclientrc" ]; then
+            client=$sysclientrc
+#if defined(__SCO__) || defined(__UNIXWARE__)
+        elif [ -f "$scouserclientrc" ]; then
+            client=$scouserclientrc
+        elif [ -f "$scosysclientrc" ]; then
+            client=$scosysclientrc
+#endif
+        fi
+
+        clientargs=$defaultclientargs
     fi
 fi
 
@@ -217,9 +216,9 @@ if [ x"$server" = x ]; then
     XCOMM if no server arguments or display either, use defaults
     if [ x"$serverargs" = x -a x"$display" = x ]; then
 	XCOMM For compatibility reasons, only use xserverrc if there were no server command line arguments
-	if [ -f $userserverrc ]; then
+	if [ -f "$userserverrc" ]; then
 	    server=$userserverrc
-	elif [ -f $sysserverrc ]; then
+	elif [ -f "$sysserverrc" ]; then
 	    server=$sysserverrc
 	fi
 
@@ -268,8 +267,8 @@ if [ x"$enable_xauth" = x1 ] ; then
 
     XCOMM create a file with auth information for the server. ':0' is a dummy.
     xserverauthfile=$HOME/.serverauth.$$
-    trap "rm -f $xserverauthfile" HUP INT QUIT ILL TRAP KILL BUS TERM
-    xauth -q -f $xserverauthfile << EOF
+    trap "rm -f '$xserverauthfile'" HUP INT QUIT ILL TRAP KILL BUS TERM
+    xauth -q -f "$xserverauthfile" << EOF
 add :$dummy . $mcookie
 EOF
     serverargs=${serverargs}" -auth "${xserverauthfile}
@@ -287,7 +286,7 @@ EOF
         removelist="$displayname $removelist"
         else
             dummy=$(($dummy+1));
-            XAUTH -q -f $xserverauthfile << EOF
+            XAUTH -q -f "$xserverauthfile" << EOF
 add :$dummy . $authcookie
 EOF
         fi
@@ -298,10 +297,10 @@ fi
 if [ "$REMOTE_SERVER" = "TRUE" ]; then
         exec SHELL_CMD ${client}
 else
-        XINIT $client $clientargs -- $server $display $serverargs
+        XINIT "$client" $clientargs -- "$server" $display $serverargs
 fi
 #else
-XINIT $client $clientargs -- $server $display $serverargs
+XINIT "$client" $clientargs -- "$server" $display $serverargs
 #endif
 
 if [ x"$enable_xauth" = x1 ] ; then
@@ -309,7 +308,7 @@ if [ x"$enable_xauth" = x1 ] ; then
         XAUTH remove $removelist
     fi
     if [ x"$xserverauthfile" != x ]; then
-        rm -f $xserverauthfile
+        rm -f "$xserverauthfile"
     fi
 fi
 
