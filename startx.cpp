@@ -271,7 +271,11 @@ if [ x"$enable_xauth" = x1 ] ; then
     xauth -q -f "$xserverauthfile" << EOF
 add :$dummy . $mcookie
 EOF
+#ifdef __APPLE__
+    serverargs=${serverargs}" -auth '"${xserverauthfile}"'"
+#else
     serverargs=${serverargs}" -auth "${xserverauthfile}
+#endif
 
     XCOMM now add the same credentials to the client authority file
     XCOMM if '$displayname' already exists do not overwrite it as another
@@ -300,7 +304,13 @@ else
         XINIT "$client" $clientargs -- "$server" $display $serverargs
 fi
 #else
+
+#ifdef __APPLE__
+eval XINIT \"$client\" $clientargs -- \"$server\" $display $serverargs
+#else
 XINIT "$client" $clientargs -- "$server" $display $serverargs
+#endif
+
 #endif
 
 if [ x"$enable_xauth" = x1 ] ; then
