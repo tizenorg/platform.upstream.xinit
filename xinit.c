@@ -60,6 +60,13 @@ in this Software without prior written authorization from The Open Group.
 #include <setjmp.h>
 #include <stdarg.h>
 
+#ifdef __APPLE__
+#include <Availability.h>
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+#include <vproc.h>
+#endif
+#endif
+
 #if !defined(SIGCHLD) && defined(SIGCLD)
 #define SIGCHLD SIGCLD
 #endif
@@ -250,6 +257,11 @@ main(int argc, char *argv[], char *envp[])
 	int client_args_given = 0, server_args_given = 0;
 	int start_of_client_args, start_of_server_args;
 	struct sigaction sa;
+#ifdef __APPLE__
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+	vproc_transaction_t vt;
+#endif
+#endif
 
 #ifdef __UNIXOS2__
 	envsave = envp;	/* circumvent an EMX problem */
@@ -426,6 +438,13 @@ main(int argc, char *argv[], char *envp[])
 
 	signal(SIGALRM, sigAlarm);
 	signal(SIGUSR1, sigUsr1);
+
+#ifdef __APPLE__
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+	vt = vproc_transaction_begin(NULL);
+#endif
+#endif
+
 	if (startServer(server) > 0
 	 && startClient(client) > 0) {
 		pid = -1;
@@ -434,6 +453,13 @@ main(int argc, char *argv[], char *envp[])
 			)
 			pid = wait(NULL);
 	}
+
+#ifdef __APPLE__
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+	vproc_transaction_end(NULL, vt);
+#endif
+#endif
+
 	signal(SIGTERM, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGINT, SIG_IGN);

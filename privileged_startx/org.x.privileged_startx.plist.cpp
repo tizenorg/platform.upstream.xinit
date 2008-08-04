@@ -17,5 +17,7 @@
 		</array>
 	<key>TimeOut</key>
 		<integer>120</integer>
+	<key>EnableTransactions</key>
+		<true/>
 </dict>
 </plist>

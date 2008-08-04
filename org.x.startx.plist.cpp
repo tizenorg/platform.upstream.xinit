@@ -21,5 +21,7 @@
 		</dict>
 	<key>ServiceIPC</key>
 		<true/>
+	<key>EnableTransactions</key>
+		<true/>
 </dict>
 </plist>
