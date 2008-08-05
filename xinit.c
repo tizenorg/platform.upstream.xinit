@@ -490,15 +490,23 @@ waitforserver(void)
 	int	ncycles	 = 120;		/* # of cycles to wait */
 	int	cycles;			/* Wait cycle count */
 
+#ifdef __APPLE__
+	/* For Apple, we don't get signaled by the server when it's ready, so we just
+	 * want to sleep now since we're going to sleep later anyways and this allows us
+	 * to avoid the awkard, "why is there an error message in the log" questions
+	 * from users.
+         */
+
+	sleep(2);
+#endif
+
 	for (cycles = 0; cycles < ncycles; cycles++) {
 		if ((xd = XOpenDisplay(displayNum))) {
 			return(TRUE);
 		}
 		else {
-#define MSG "X server to begin accepting connections"
-		    if (!processTimeout (1, MSG)) 
+		    if (!processTimeout (1, "X server to begin accepting connections")) 
 		      break;
-#undef MSG
 		}
 	}
 
