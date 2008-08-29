@@ -70,5 +70,5 @@ EXTRA_DIST = \
 	privileged_startx.defs \
 	privileged_startx_types.h
 
-$(BUILT_SOURCES): privileged_startx.defs
-	mig -sheader privileged_startxServer.h privileged_startx.defs
+$(BUILT_SOURCES): $(srcdir)/privileged_startx.defs
+	mig -sheader privileged_startxServer.h $(srcdir)/privileged_startx.defs
