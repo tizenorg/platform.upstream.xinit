@@ -61,7 +61,7 @@ in this Software without prior written authorization from The Open Group.
 #include <stdarg.h>
 
 #ifdef __APPLE__
-#include <Availability.h>
+#include <AvailabilityMacros.h>
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 #include <vproc.h>
 #endif
