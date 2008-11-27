@@ -102,18 +102,17 @@ AC_ARG_WITH(launchdaemons-dir,  AS_HELP_STRING([--with-launchdaemons-dir=PATH], 
 
 if test "x$LAUNCHD" = "xauto"; then
 	unset LAUNCHD
-	case $host_os in
-		darwin8*)
-			LAUNCHD=no
-		;;
-		*)
-			AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
-		;;
-	esac
+	AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
 fi
 
+TIGER_LAUNCHD=no
 if test "x$LAUNCHD" = "xyes" ; then
 	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
+	case $host_os in
+		darwin8*)
+			TIGER_LAUNCHD=yes
+		;;
+	esac
 else
         launchagentsdir=""
         launchdaemonsdir=""
@@ -121,6 +120,7 @@ fi
 AC_SUBST([launchagentsdir])
 AC_SUBST([launchdaemonsdir])
 AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
+AM_CONDITIONAL(TIGER_LAUNCHD, [test "x$TIGER_LAUNCHD" = "xyes"])
 
 # Checks for pkg-config packages
 PKG_CHECK_MODULES(XINIT, x11)

@@ -34,8 +34,11 @@ xinitrc_PROGRAMS = privileged_startx
 privstartx_SCRIPTS = 10-tmpdirs 20-font_cache
 
 AM_CPPFLAGS = -DXINITDIR=\"$(xinitrcdir)\" -DSCRIPTDIR=\"$(privstartxdir)\" -DBINDIR=\"$(bindir)\"
-
 CPP_FILES_FLAGS = -DXINITDIR="$(xinitrcdir)" -DSCRIPTDIR="$(privstartxdir)" -DBINDIR="$(bindir)"
+
+if TIGER_LAUNCHD
+CPP_FILES_FLAGS += -DTIGER_LAUNCHD
+endif
 
 dist_privileged_startx_SOURCES = \
 	server.c \
