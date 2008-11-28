@@ -153,7 +153,7 @@ int server_main(const char *dir) {
 
     mp = launch_data_get_machport(svc);
 #else
-    kr = bootstrap_check_in(bootstrap_port, bname, &mp);
+    kr = bootstrap_check_in(bootstrap_port, "org.x.X11", &mp);
     if (kr == KERN_SUCCESS)
         return mp;
 
@@ -209,8 +209,10 @@ kern_return_t do_privileged_startx(mach_port_t test_port __attribute__((unused))
 
     const char * path_argv[2] = {script_dir, NULL};
 
+#ifdef LAUNCH_JOBKEY_MACHSERVICES
     /* Store that we were called, so the idle timer will reset */
     gettimeofday(&idle_globals.lastmsg, NULL);
+#endif
 
     /* script_dir contains a set of files to run with root privs when X11 starts */
     ftsp = fts_open(path_argv, FTS_PHYSICAL, ftscmp);
