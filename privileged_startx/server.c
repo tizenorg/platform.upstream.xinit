@@ -153,10 +153,6 @@ int server_main(const char *dir) {
 
     mp = launch_data_get_machport(svc);
 #else
-    kr = bootstrap_check_in(bootstrap_port, "org.x.X11", &mp);
-    if (kr == KERN_SUCCESS)
-        return mp;
-
     mp = checkin_or_register("org.x.privileged_startx");
 #endif
 
