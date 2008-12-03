@@ -84,21 +84,25 @@ serverargs=""
 
 #ifdef __APPLE__
 
+if [ "x$X11_PREFS_DOMAIN" = x ] ; then
+    X11_PREFS_DOMAIN="org.x.X11"
+fi
+
 XCOMM Initialize defaults (this will cut down on "safe" error messages)
-if ! defaults read org.x.X11 cache_fonts >& /dev/null ; then
-    defaults write org.x.X11 cache_fonts -bool true
+if ! defaults read $X11_PREFS_DOMAIN cache_fonts >& /dev/null ; then
+    defaults write $X11_PREFS_DOMAIN cache_fonts -bool true
 fi
 
-if ! defaults read org.x.X11 no_auth >& /dev/null ; then
-    defaults write org.x.X11 no_auth -bool false
+if ! defaults read $X11_PREFS_DOMAIN no_auth >& /dev/null ; then
+    defaults write $X11_PREFS_DOMAIN no_auth -bool false
 fi
 
-if ! defaults read org.x.X11 nolisten_tcp >& /dev/null ; then
-    defaults write org.x.X11 nolisten_tcp -bool true
+if ! defaults read $X11_PREFS_DOMAIN nolisten_tcp >& /dev/null ; then
+    defaults write $X11_PREFS_DOMAIN nolisten_tcp -bool true
 fi
 
 XCOMM First, start caching fonts
-if [ x`defaults read org.x.X11 cache_fonts` = x1 ] ; then
+if [ x`defaults read $X11_PREFS_DOMAIN cache_fonts` = x1 ] ; then
     if [ -x /usr/X11/bin/font_cache ] ; then
         /usr/X11/bin/font_cache &
     elif [ -x /usr/X11/bin/font_cache.sh ] ; then
@@ -114,13 +118,13 @@ if [ -x XINITDIR/privileged_startx ] ; then
 	XINITDIR/privileged_startx
 fi
 
-if [ x`defaults read org.x.X11 no_auth` = x0 ] ; then
+if [ x`defaults read $X11_PREFS_DOMAIN no_auth` = x0 ] ; then
     enable_xauth=1
 else
     enable_xauth=0
 fi
 
-if [ x`defaults read org.x.X11 nolisten_tcp` = x1 ] ; then
+if [ x`defaults read $X11_PREFS_DOMAIN nolisten_tcp` = x1 ] ; then
     defaultserverargs="$defaultserverargs -nolisten tcp"
 fi
 
