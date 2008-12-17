@@ -128,6 +128,10 @@ if [ x`defaults read $X11_PREFS_DOMAIN nolisten_tcp` = x1 ] ; then
     defaultserverargs="$defaultserverargs -nolisten tcp"
 fi
 
+if defaults read $X11_PREFS_DOMAIN dpi >& /dev/null ; then
+    defaultserverargs="$defaultserverargs -dpi `defaults read $X11_PREFS_DOMAIN dpi`"
+fi
+
 for ((d=0; ; d++)) ; do
     [[ -e /tmp/.X$d-lock ]] || break
 done
