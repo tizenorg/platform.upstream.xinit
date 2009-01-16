@@ -162,13 +162,13 @@ while [ x"$1" != x ]; do
     XCOMM '' required to prevent cpp from treating "/*" as a C comment.
     /''*|\./''*)
 	if [ "$whoseargs" = "client" ]; then
-	    if [ x"$clientargs" = x ]; then
+	    if [ x"$client" = x ] && [ x"$clientargs" = x ]; then
 		client="$1"
 	    else
 		clientargs="$clientargs $1"
 	    fi
 	else
-	    if [ x"$serverargs" = x ]; then
+	    if [ x"$server" = x ] && [ x"$serverargs" = x ]; then
 		server="$1"
 	    else
 		serverargs="$serverargs $1"
