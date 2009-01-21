@@ -23,3 +23,6 @@ xinitrc
 *~
 *.o
 org.x.X11.plist
+xinit-*.tar.*
+ChangeLog
+tags
