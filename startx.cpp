@@ -320,6 +320,7 @@ XINIT "$client" $clientargs -- "$server" $display $serverargs
 #endif
 
 #endif
+retval=$?
 
 if [ x"$enable_xauth" = x1 ] ; then
     if [ x"$removelist" != x ]; then
@@ -347,3 +348,6 @@ screenrestore
 #if defined(sun)
 kbd_mode -a
 #endif
+
+exit $retval
+
