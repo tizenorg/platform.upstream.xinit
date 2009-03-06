@@ -279,7 +279,7 @@ if [ x"$enable_xauth" = x1 ] ; then
     xauth -q -f "$xserverauthfile" << EOF
 add :$dummy . $mcookie
 EOF
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__CYGWIN__)
     serverargs=${serverargs}" -auth '"${xserverauthfile}"'"
 #else
     serverargs=${serverargs}" -auth "${xserverauthfile}
@@ -313,7 +313,7 @@ else
 fi
 #else
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__CYGWIN__)
 eval XINIT \"$client\" $clientargs -- \"$server\" $display $serverargs
 #else
 XINIT "$client" $clientargs -- "$server" $display $serverargs
