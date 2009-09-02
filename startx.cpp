@@ -85,7 +85,7 @@ serverargs=""
 #ifdef __APPLE__
 
 if [ "x$X11_PREFS_DOMAIN" = x ] ; then
-    X11_PREFS_DOMAIN="org.x.X11"
+    X11_PREFS_DOMAIN=LAUNCHD_ID_PREFIX".X11"
 fi
 
 XCOMM Initialize defaults (this will cut down on "safe" error messages)

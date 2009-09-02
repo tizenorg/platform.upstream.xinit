@@ -26,6 +26,10 @@
  * prior written authorization.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <mach/mach.h>
 #include <mach/mach_error.h>
 #include <servers/bootstrap.h>
@@ -153,7 +157,7 @@ int server_main(const char *dir) {
 
     mp = launch_data_get_machport(svc);
 #else
-    mp = checkin_or_register("org.x.privileged_startx");
+    mp = checkin_or_register(LAUNCHD_ID_PREFIX".privileged_startx");
 #endif
 
     if (mp == MACH_PORT_NULL) {

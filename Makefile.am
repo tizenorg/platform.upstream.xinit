@@ -56,10 +56,14 @@ CPP_FILES_FLAGS = \
 	-DXINITDIR=$(XINITDIR) $(PROGCPPDEFS) -DLIBDIR=$(libdir) \
 	-DSHELL_CMD=$(SHELL_CMD) $(STARTX_COOKIE_FLAGS) \
 	-D__libexecdir__="$(libexecdir)" \
-	-D__bindir__="$(bindir)"
+	-D__bindir__="$(bindir)" \
+	-DLAUNCHD_ID_PREFIX=\"$(launchdidprefix)\"
 
 if LAUNCHD
-launchagents_PRE = org.x.startx.plist.cpp
+$(launchdidprefix).startx.plist.cpp: org.x.startx.plist.cpp
+	cp $< $@
+
+launchagents_PRE = $(launchdidprefix).startx.plist.cpp
 launchagents_DATA = $(launchagents_PRE:plist.cpp=plist)
 
 SUBDIRS = privileged_startx
