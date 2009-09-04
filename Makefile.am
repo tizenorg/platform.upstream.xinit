@@ -57,7 +57,7 @@ CPP_FILES_FLAGS = \
 	-DSHELL_CMD=$(SHELL_CMD) $(STARTX_COOKIE_FLAGS) \
 	-D__libexecdir__="$(libexecdir)" \
 	-D__bindir__="$(bindir)" \
-	-DLAUNCHD_ID_PREFIX=\"$(launchdidprefix)\"
+	-DLAUNCHD_ID_PREFIX="$(launchdidprefix)"
 
 if LAUNCHD
 $(launchdidprefix).startx.plist.cpp: org.x.startx.plist.cpp
