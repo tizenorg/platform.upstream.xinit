@@ -10,7 +10,7 @@
 		</array>
 	<key>Sockets</key>
 		<dict>
-			<key>LAUNCHD_ID_PREFIX-:0</key>
+			<key>LAUNCHD_ID_PREFIX:0</key>
 				<dict>
 					<key>SecureSocketWithKey</key>
 						<string>DISPLAY</string>
