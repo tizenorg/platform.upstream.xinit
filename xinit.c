@@ -102,12 +102,6 @@ char **newenvironlast = NULL;
 # endif
 #endif
 
-/* A/UX setpgid incorrectly removes the controlling terminal.
-   Per Posix, only setsid should do that. */
-#ifdef macII
-#define setpgid setpgrp
-#endif
-
 #ifdef __UNIXOS2__
 #define HAS_EXECVPE
 #endif
