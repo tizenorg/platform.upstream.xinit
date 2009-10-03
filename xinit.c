@@ -277,15 +277,6 @@ main(int argc, char *argv[], char *envp[])
 #endif
 		for (ptr = default_client; *ptr; )
 			*cptr++ = *ptr++;
-#ifdef sun
-		/* 
-		 * If running on a sun, and if WINDOW_PARENT isn't defined, 
-		 * that means SunWindows isn't running, so we should pass 
-		 * the -C flag to xterm so that it sets up a console.
-		 */
-		if ( getenv("WINDOW_PARENT") == NULL )
-		    *cptr++ = "-C";
-#endif /* sun */
 	} else {
 		client_given = 1;
 	}
