@@ -24,7 +24,8 @@ XINITDIR = $(libdir)/X11/xinit
 bin_PROGRAMS = xinit
 bin_SCRIPTS = startx
 
-AM_CFLAGS = $(XINIT_CFLAGS) -DXINITDIR=\"$(XINITDIR)\" -DBINDIR=\"$(bindir)\"
+AM_CFLAGS = $(CWARNFLAGS) $(XINIT_CFLAGS)
+AM_CPPFLAGS = -DXINITDIR=\"$(XINITDIR)\" -DBINDIR=\"$(bindir)\"
 xinit_LDADD = $(XINIT_LIBS)
 
 xinit_SOURCES =	\
