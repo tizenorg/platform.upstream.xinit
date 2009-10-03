@@ -1,5 +1,4 @@
-.\" $Xorg: startx.man,v 1.4 2001/02/09 02:05:49 xorgcvs Exp $
-.\" $XdotOrg$
+.\"
 .\" Copyright 1993, 1998  The Open Group
 .\" 
 .\" Permission to use, copy, modify, distribute, and sell this software and its
@@ -24,7 +23,6 @@
 .\" other dealings in this Software without prior written authorization
 .\" from The Open Group.
 .\"
-.\" $XFree86: xc/programs/xinit/startx.man,v 1.7 2001/04/19 15:08:32 dawes Exp $
 .\"
 .TH STARTX __appmansuffix__ __xorgversion__
 .SH NAME

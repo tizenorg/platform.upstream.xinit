@@ -1,6 +1,3 @@
-/* $Xorg: xinit.c,v 1.5 2001/02/09 02:05:49 xorgcvs Exp $ */
-/* $XdotOrg: $ */
-
 /*
 
 Copyright 1986, 1998  The Open Group
@@ -26,7 +23,6 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 
 */
-/* $XFree86: xc/programs/xinit/xinit.c,v 3.32 2002/05/31 18:46:13 dawes Exp $ */
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
