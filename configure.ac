@@ -190,9 +190,5 @@ AC_SUBST(XSERVER)
 AC_SUBST(XAUTH)
 AC_SUBST(XINIT)
 
-# Defines which X servers are listed in help output in xinit.c
-# Cheat, lie, and assume all the world is Xorg for now
-AC_DEFINE(XORG, 1, [Define if you have Xorg X server])
-
 AC_OUTPUT([Makefile])
 AC_OUTPUT([privileged_startx/Makefile])

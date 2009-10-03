@@ -120,36 +120,21 @@ char **newenvironlast = NULL;
 
 const char *bindir = BINDIR;
 const char * const server_names[] = {
-#if defined(ultrix) && defined(mips)
-    "Xdec        Digital color display on DECstation",
-#endif
-#if defined(sun) && !defined(XORG)	/* Sun */
-    "Xsun        Sun BW2, CG2, CG3, CG4, or CG6 on Sun 2, 3, 4, or 386i",
-    "Xsunmono    Sun BW2 on Sun 2, 3, 4, or 386i ",
-    "Xsun24      Sun BW2, CG2, CG3, CG4, CG6, or CG8 on Sun 4",
-#endif
-#ifdef hpux				/* HP */
-    "Xhp         HP monochrome and colors displays on 9000/300 series",
-#endif
-#ifdef ibm				/* IBM */
-    "Xibm        IBM AED, APA, 8514a, megapel, VGA displays on PC/RT",
-#endif
-#ifdef macII				/* MacII */
-    "XmacII      Apple monochrome display on Macintosh II",
-#endif
-#ifdef XFREE86
-    "XFree86     XFree86 displays",
-#endif
-#ifdef XORG
-    "Xorg        Common X server for most displays",
-#endif
 #ifdef __APPLE__
     "Xquartz     Mac OSX Quartz displays.",
+#else
+# ifdef __CYGWIN__
+    "XWin        X Server for the Cygwin environment on Microsoft Windows",
+# else
+    "Xorg        Common X server for most displays",
+# endif
 #endif
     "Xvfb        Virtual frame buffer",
     "Xfake       kdrive-based virtual frame buffer",
     "Xnest       X server nested in a window on another X server",
     "Xephyr      kdrive-based nested X server",
+    "Xvnc        X server accessed over VNC's RFB protocol",
+    "Xdmx        Distributed Multi-head X server",
     NULL};
 
 #ifndef XINITRC
