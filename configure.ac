@@ -57,6 +57,7 @@ DEFAULT_XTERM=xterm
 DEFAULT_XSERVER=${bindir}/X
 DEFAULT_XAUTH=xauth
 DEFAULT_XINIT=xinit
+DEFAULT_XINITDIR=${libdir}/X11/xinit
 
 AC_ARG_WITH(xrdb,
 	 AS_HELP_STRING([--with-xrdb=XRDB], [Path to xrdb]),
@@ -97,6 +98,11 @@ AC_ARG_WITH(xinit,
 	 AS_HELP_STRING([--with-xinit=XINIT], [Path to xinit]),
 	[XINIT="$withval"],
 	[XINIT="$DEFAULT_XINIT"])
+
+AC_ARG_WITH(xinitdir,
+	 AS_HELP_STRING([--with-xinitdir=XINITDIR], [Path to xinitdir]),
+	[XINITDIR="$withval"],
+	[XINITDIR="$DEFAULT_XINITDIR"])
 
 AC_ARG_WITH(launchd,            AS_HELP_STRING([--with-launchd], [Build with support for Apple's launchd (default: auto)]), [LAUNCHD=$withval], [LAUNCHD=auto])
 AC_ARG_WITH(launchagents-dir,   AS_HELP_STRING([--with-launchagents-dir=PATH], [Path to launchd's LaunchAgents directory (default: /Library/LaunchAgents)]),
@@ -189,6 +195,7 @@ AC_SUBST(XTERM)
 AC_SUBST(XSERVER)
 AC_SUBST(XAUTH)
 AC_SUBST(XINIT)
+AC_SUBST(XINITDIR)
 
 AC_OUTPUT([Makefile])
 AC_OUTPUT([privileged_startx/Makefile])
