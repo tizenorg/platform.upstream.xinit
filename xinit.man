@@ -192,6 +192,8 @@ server to run if \fI.xserverrc\fP does not exist
 .BR X (__miscmansuffix__),
 .BR startx (__appmansuffix__),
 .BR Xserver (__appmansuffix__),
+.BR __XSERVERNAME__ (__appmansuffix__),
+.BR __XCONFIGFILEMAN__,
 .BR xterm (__appmansuffix__)
 .SH AUTHOR
 Bob Scheifler, MIT Laboratory for Computer Science

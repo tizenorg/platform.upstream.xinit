@@ -170,22 +170,34 @@ fi
 AC_SUBST(STARTX_COOKIE_FLAGS)
 
 # Additional substitutions in startx, xinitrc & man pages
+ARCHMANDEFS=""
+SHELL_CMD="/bin/sh"
+XSERVERNAME="Xorg"
+XCONFIGFILE="xorg.conf"
+XCONFIGFILEMAN='${XCONFIGFILE} (__filemansuffix__)'
 case $host_os in
+    cygwin*)
+	XSERVERNAME="XWin"
+	XCONFIGFILE="XWinrc"
+	;;
+    darwin*)
+	XSERVERNAME="Xquartz"
+	XCONFIGFILE="defaults"
+	XCONFIGFILEMAN='defaults (1)'
+	;;
     *solaris*)
 	SHELL_CMD="/bin/ksh"
-	ARCHMANDEFS=""
 	;;
     *sco*)
 	SHELL_CMD="/bin/ksh"
 	ARCHMANDEFS="-D__SCOMAN__"
 	;;
-    *)
-	SHELL_CMD="/bin/sh"
-	ARCHMANDEFS=""
-	;;
 esac
 AC_SUBST(SHELL_CMD)
 AC_SUBST(ARCHMANDEFS)
+AC_SUBST(XSERVERNAME)
+AC_SUBST(XCONFIGFILE)
+AC_SUBST(XCONFIGFILEMAN)
 
 AC_SUBST(XRDB)
 AC_SUBST(XMODMAP)

@@ -23,7 +23,9 @@ MANDEFS =  \
 	-D__filemansuffix__=$(FILE_MAN_SUFFIX) \
 	-D__libmansuffix__=$(LIB_MAN_SUFFIX) \
 	-D__miscmansuffix__=$(MISC_MAN_SUFFIX) \
-	-D__XSERVERNAME__=Xorg -D__XCONFIGFILE__=xorg.conf \
+	-D__XSERVERNAME__='$(XSERVERNAME)' \
+	-D__XCONFIGFILE__='$(XCONFIGFILE)' \
+	-D__XCONFIGFILEMAN__='$(XCONFIGFILEMAN)' \
 	-D__xinitdir__=$(XINITDIR) \
 	-D__bindir__=$(bindir) \
 	-DSHELL_CMD=$(SHELL_CMD) $(ARCHMANDEFS)
