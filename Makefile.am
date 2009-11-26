@@ -72,10 +72,11 @@ DIST_SUBDIRS = privileged_startx
 
 xinitrc_DATA = xinitrc
 
+MAINTAINERCLEANFILES = ChangeLog INSTALL
 CLEANFILES = xinitrc startx $(appman_DATA) $(launchagents_DATA)
 
 EXTRA_DIST = xinitrc.cpp startx.cpp org.x.startx.plist.cpp $(appman_PRE)	\
-		startx.cmd xinitrc.cmd xinit.def ChangeLog
+		startx.cmd xinitrc.cmd xinit.def autogen.sh
 
 .PHONY: ChangeLog INSTALL
 
