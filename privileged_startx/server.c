@@ -215,7 +215,7 @@ kern_return_t do_privileged_startx(mach_port_t test_port __attribute__((unused))
 #endif
 
     /* script_dir contains a set of files to run with root privs when X11 starts */
-    ftsp = fts_open(path_argv, FTS_PHYSICAL, ftscmp);
+    ftsp = fts_open((char * const *)path_argv, FTS_PHYSICAL, ftscmp);
     if(!ftsp) {
         asl_log(NULL, NULL, ASL_LEVEL_ERR,
                 "do_privileged_startx: fts_open(%s): %s\n",
