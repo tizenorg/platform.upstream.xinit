@@ -278,7 +278,7 @@ if [ x"$enable_xauth" = x1 ] ; then
 add :$dummy . $mcookie
 EOF
 #if defined(__APPLE__) || defined(__CYGWIN__)
-    serverargs=${serverargs}" -auth '"${xserverauthfile}"'"
+    serverargs=${serverargs}" -auth '"${xserverauthfile//\'/\'\\\'\'}"'"
 #else
     serverargs=${serverargs}" -auth "${xserverauthfile}
 #endif
