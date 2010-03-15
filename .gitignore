@@ -37,6 +37,7 @@ Makefile.in
 mdate-sh
 missing
 mkinstalldirs
+*.startx.plist
 *.pc
 py-compile
 stamp-h?
