@@ -429,12 +429,8 @@ startServer(char *server[])
         /*
          * don't hang on read/write to control tty
          */
-#ifdef SIGTTIN
         signal(SIGTTIN, SIG_IGN);
-#endif
-#ifdef SIGTTOU
         signal(SIGTTOU, SIG_IGN);
-#endif
         /*
          * ignore SIGUSR1 in child.  The server
          * will notice this and send SIGUSR1 back
