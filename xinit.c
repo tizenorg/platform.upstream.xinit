@@ -104,8 +104,6 @@ char xserverrcbuf[256];
 
 #define TRUE 1
 #define FALSE 0
-#define OK_EXIT 0
-#define ERR_EXIT 1
 
 static char *default_server = "X";
 static char *default_display = ":0";        /* choose most efficient */
@@ -351,14 +349,14 @@ main(int argc, char *argv[])
 
     if (gotSignal != 0) {
         Error("unexpected signal %d.\n", gotSignal);
-        exit(ERR_EXIT);
+        exit(EXIT_FAILURE);
     }
 
     if (serverpid < 0)
         Fatal("Server error.\n");
     if (clientpid < 0)
         Fatal("Client error.\n");
-    exit(OK_EXIT);
+    exit(EXIT_SUCCESS);
 }
 
 
@@ -490,7 +488,7 @@ startServer(char *server[])
             }
             fprintf(stderr, "\n");
         }
-        exit(ERR_EXIT);
+        exit(EXIT_FAILURE);
 
         break;
     case -1:
@@ -633,7 +631,7 @@ startClient(char *client[])
 
         if (setuid(getuid()) == -1) {
             Error("cannot change uid: %s\n", strerror(errno));
-            _exit(ERR_EXIT);
+            _exit(EXIT_FAILURE);
         }
         setpgid(0, getpid());
         Execute(client);
@@ -643,7 +641,7 @@ startClient(char *client[])
         fprintf(stderr,
                 "is in your path.\r\n");
         fprintf(stderr, "\n");
-        _exit(ERR_EXIT);
+        _exit(EXIT_FAILURE);
     } else {
         return clientpid;
     }
@@ -718,7 +716,7 @@ set_environment(void)
 {
     if (setenv("DISPLAY", displayNum, TRUE) == -1) {
 	fprintf(stderr, "%s:  unable to set DISPLAY\n", program);
-	exit(ERR_EXIT);
+	exit(EXIT_FAILURE);
     }
 }
 
@@ -726,7 +724,7 @@ static void
 Fatal(char *msg)
 {
     Error(msg);
-    exit(ERR_EXIT);
+    exit(EXIT_FAILURE);
 }
 
 static void
