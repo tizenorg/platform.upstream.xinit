@@ -109,8 +109,11 @@ static int startClient(char *client[]);
 static int ignorexio(Display *dpy);
 static void shutdown(void);
 static void set_environment(void);
-static void Fatal(char *msg);
-static void Error(char *fmt, ...);
+
+static void Fatal(const char *fmt, ...);
+static void Error(const char *fmt, ...);
+static void Fatalx(const char *fmt, ...);
+static void Errorx(const char *fmt, ...);
 
 static void
 sigCatch(int sig)
@@ -221,9 +224,7 @@ main(int argc, char *argv[])
                 client += start_of_client_args - 1;
                 client[0] = xinitrcbuf;
             } else if (required) {
-                fprintf(stderr,
-                        "%s:  warning, no client init file \"%s\"\n",
-                        program, xinitrcbuf);
+                Error("warning, no client init file \"%s\"", xinitrcbuf);
             }
         }
     }
@@ -249,9 +250,7 @@ main(int argc, char *argv[])
                 server += start_of_server_args - 1;
                 server[0] = xserverrcbuf;
             } else if (required) {
-                fprintf(stderr,
-                        "%s:  warning, no server init file \"%s\"\n",
-                        program, xserverrcbuf);
+                Error("warning, no server init file \"%s\"", xserverrcbuf);
             }
         }
     }
@@ -311,14 +310,14 @@ main(int argc, char *argv[])
     shutdown();
 
     if (gotSignal != 0) {
-        Error("unexpected signal %d.\n", gotSignal);
+        Errorx("unexpected signal %d", gotSignal);
         exit(EXIT_FAILURE);
     }
 
     if (serverpid < 0)
-        Fatal("Server error.\n");
+        Fatalx("server error");
     if (clientpid < 0)
-        Fatal("Client error.\n");
+        Fatalx("client error");
     exit(EXIT_SUCCESS);
 }
 
@@ -352,7 +351,8 @@ waitforserver(void)
         }
     }
 
-    fprintf(stderr, "giving up.\r\n");
+    Errorx("giving up");
+
     return(FALSE);
 }
 
@@ -389,6 +389,7 @@ static int
 startServer(char *server[])
 {
     sigset_t mask, old;
+    const char * const *cpp;
 
     sigemptyset(&mask);
     sigaddset(&mask, SIGUSR1);
@@ -418,23 +419,16 @@ startServer(char *server[])
          */
         setpgid(0,getpid());
         Execute(server);
-        Error("no server \"%s\" in PATH\n", server[0]);
-        {
-            const char * const *cpp;
 
-            fprintf(stderr,
-                    "\nUse the -- option, or make sure that %s is in your path and\n",
-                    bindir);
-            fprintf(stderr,
-                    "that \"%s\" is a program or a link to the right type of server\n",
-                    server[0]);
-            fprintf(stderr,
-                    "for your display.  Possible server names include:\n\n");
-            for (cpp = server_names; *cpp; cpp++) {
-                fprintf(stderr, "    %s\n", *cpp);
-            }
-            fprintf(stderr, "\n");
-        }
+        Error("unable to run server \"%s\"", server[0]);
+
+        fprintf(stderr, "Use the -- option, or make sure that %s is in your path and\n", bindir);
+        fprintf(stderr, "that \"%s\" is a program or a link to the right type of server\n", server[0]);
+        fprintf(stderr, "for your display.  Possible server names include:\n\n");
+        for (cpp = server_names; *cpp; cpp++)
+            fprintf(stderr, "    %s\n", *cpp);
+        fprintf(stderr, "\n");
+
         exit(EXIT_FAILURE);
 
         break;
@@ -466,7 +460,7 @@ startServer(char *server[])
         sigprocmask(SIG_SETMASK, &old, NULL);
 
         if (waitforserver() == 0) {
-            Error("unable to connect to X server\r\n");
+            Error("unable to connect to X server");
             shutdown();
             serverpid = -1;
         }
@@ -494,23 +488,17 @@ setWindowPath(void)
     size_t len;
     prop = XInternAtom(xd, "XFree86_VT", False);
     if (prop == None) {
-#ifdef DEBUG
-        fprintf(stderr, "no XFree86_VT atom\n");
-#endif
+        Errorx("Unable to intern XFree86_VT atom");
         return;
     }
     if (XGetWindowProperty(xd, DefaultRootWindow(xd), prop, 0, 1,
         False, AnyPropertyType, &actualtype, &actualformat,
         &nitems, &bytes_after, &buf)) {
-#ifdef DEBUG
-        fprintf(stderr, "no XFree86_VT property\n");
-#endif
+        Errorx("No XFree86_VT property detected on X server, WINDOWPATH won't be set");
         return;
     }
     if (nitems != 1) {
-#ifdef DEBUG
-        fprintf(stderr, "%lu items in XFree86_VT property!\n", nitems);
-#endif
+        Errorx("XFree86_VT property unexpectedly has %lu items instead of 1", nitems);
         XFree(buf);
         return;
     }
@@ -529,17 +517,13 @@ setWindowPath(void)
             num = (*(uint32_t *)(void *)buf);
             break;
         default:
-#ifdef DEBUG
-            fprintf(stderr, "format %d in XFree86_VT property!\n", actualformat);
-#endif
+            Errorx("XFree86_VT property has unexpected format %d", actualformat);
             XFree(buf);
             return;
         }
         break;
     default:
-#ifdef DEBUG
-        fprintf(stderr, "type %lx in XFree86_VT property!\n", actualtype);
-#endif
+        Errorx("XFree86_VT property has unexpected type %lx", actualtype);
         XFree(buf);
         return;
     }
@@ -561,7 +545,8 @@ setWindowPath(void)
                  windowpath, nums);
     }
     if (setenv("WINDOWPATH", newwindowpath, TRUE) == -1)
-        fprintf(stderr, "%s:  unable to set WINDOWPATH\n", program);
+        Error("unable to set WINDOWPATH");
+
 
     free(newwindowpath);
 }
@@ -575,17 +560,16 @@ startClient(char *client[])
         setWindowPath();
 
         if (setuid(getuid()) == -1) {
-            Error("cannot change uid: %s\n", strerror(errno));
+            Error("cannot change uid");
             _exit(EXIT_FAILURE);
         }
         setpgid(0, getpid());
         Execute(client);
-        Error("no program named \"%s\" in PATH\r\n", client[0]);
-        fprintf(stderr,
-                "\nSpecify a program on the command line or make sure that %s\r\n", bindir);
-        fprintf(stderr,
-                "is in your path.\r\n");
-        fprintf(stderr, "\n");
+        Error("Unable to run program \"%s\"", client[0]);
+
+        fprintf(stderr, "Specify a program on the command line or make sure that %s\n", bindir);
+        fprintf(stderr, "is in your path.\n\n");
+
         _exit(EXIT_FAILURE);
     } else {
         return clientpid;
@@ -597,7 +581,7 @@ static jmp_buf close_env;
 static int
 ignorexio(Display *dpy)
 {
-    fprintf(stderr, "%s:  connection to X server lost.\r\n", program);
+    Errorx("connection to X server lost");
     longjmp(close_env, 1);
     /*NOTREACHED*/
     return 0;
@@ -614,69 +598,91 @@ shutdown(void)
         }
 
         /* HUP all local clients to allow them to clean up */
-        errno = 0;
-        if ((killpg(clientpid, SIGHUP) != 0) &&
-            (errno != ESRCH))
-            Error("can't send HUP to process group %d\r\n",
-                  clientpid);
+        if (killpg(clientpid, SIGHUP) < 0 && errno != ESRCH)
+            Error("can't send HUP to process group %d", clientpid);
     }
 
     if (serverpid < 0)
         return;
-    errno = 0;
+
     if (killpg(serverpid, SIGTERM) < 0) {
-        if (errno == EPERM)
-            Fatal("Can't kill X server\r\n");
         if (errno == ESRCH)
             return;
-    }
-    if (! processTimeout(10, "X server to shut down")) {
-        fprintf(stderr, "\r\n");
-        return;
+        Fatal("can't kill X server");
     }
 
-    fprintf(stderr,
-            "\r\n%s:  X server slow to shut down, sending KILL signal.\r\n",
-            program);
-    fflush(stderr);
-    errno = 0;
+    if (!processTimeout(10, "X server to shut down"))
+        return;
+
+    Errorx("X server slow to shut down, senging KILL signal");
+
     if (killpg(serverpid, SIGKILL) < 0) {
         if (errno == ESRCH)
             return;
+        Error("can't SIGKILL X server");
     }
-    if (processTimeout(3, "server to die")) {
-        fprintf(stderr, "\r\n");
-        Fatal("Can't kill server\r\n");
-    }
-    fprintf(stderr, "\r\n");
-    return;
+
+    if (processTimeout(3, "server to die"))
+        Fatalx("X server refuses to die");
 }
 
 static void
 set_environment(void)
 {
-    if (setenv("DISPLAY", displayNum, TRUE) == -1) {
-	fprintf(stderr, "%s:  unable to set DISPLAY\n", program);
-	exit(EXIT_FAILURE);
-    }
+    if (setenv("DISPLAY", displayNum, TRUE) == -1)
+        Fatal("unable to set DISPLAY");
 }
 
 static void
-Fatal(char *msg)
+verror(const char *fmt, va_list ap)
 {
-    Error(msg);
+    fprintf(stderr, "%s: ", program);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, ": %s\n", strerror(errno));
+}
+
+static void
+verrorx(const char *fmt, va_list ap)
+{
+    fprintf(stderr, "%s: ", program);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+}
+
+static void
+Fatal(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    verror(fmt, ap);
+    va_end(ap);
     exit(EXIT_FAILURE);
 }
 
 static void
-Error(char *fmt, ...)
+Fatalx(const char *fmt, ...)
 {
     va_list ap;
-
     va_start(ap, fmt);
-    fprintf(stderr, "%s:  ", program);
-    if (errno > 0)
-        fprintf(stderr, "%s (errno %d):  ", strerror(errno), errno);
-    vfprintf(stderr, fmt, ap);
+    verrorx(fmt, ap);
+    va_end(ap);
+    exit(EXIT_FAILURE);
+}
+
+static void
+Error(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    verror(fmt, ap);
+    va_end(ap);
+}
+
+static void
+Errorx(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    verrorx(fmt, ap);
     va_end(ap);
 }
