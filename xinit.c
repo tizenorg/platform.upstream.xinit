@@ -137,19 +137,8 @@ sigCatch(int sig)
 }
 
 static SIGVAL
-sigAlarm(int sig)
+sigIgnore(int sig)
 {
-#if defined(SYSV) || defined(SVR4) || defined(linux) || defined(__APPLE__)
-    signal(sig, sigAlarm);
-#endif
-}
-
-static SIGVAL
-sigUsr1(int sig)
-{
-#if defined(SYSV) || defined(SVR4) || defined(linux) || defined(__APPLE__)
-    signal(sig, sigUsr1);
-#endif
 }
 
 static void
@@ -174,7 +163,7 @@ main(int argc, char *argv[])
     int client_given = 0, server_given = 0;
     int client_args_given = 0, server_args_given = 0;
     int start_of_client_args, start_of_server_args;
-    struct sigaction sa;
+    struct sigaction sa, si;
 #ifdef __APPLE__
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
     vproc_transaction_t vt;
@@ -301,8 +290,13 @@ main(int argc, char *argv[])
     sigaction(SIGHUP, &sa, NULL);
     sigaction(SIGPIPE, &sa, NULL);
 
-    signal(SIGALRM, sigAlarm);
-    signal(SIGUSR1, sigUsr1);
+    memset(&si, 0, sizeof(si));
+    si.sa_handler = sigIgnore;
+    sigemptyset(&si.sa_mask);
+    si.sa_flags = SA_RESTART;
+
+    sigaction(SIGALRM, &si, NULL);
+    sigaction(SIGUSR1, &si, NULL);
 
 #ifdef __APPLE__
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
