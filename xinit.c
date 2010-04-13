@@ -35,20 +35,7 @@ in this Software without prior written authorization from The Open Group.
 #include <ctype.h>
 #include <stdint.h>
 
-#ifdef X_POSIX_C_SOURCE
-#define _POSIX_C_SOURCE X_POSIX_C_SOURCE
 #include <signal.h>
-#undef _POSIX_C_SOURCE
-#else
-#if defined(X_NOT_POSIX) || defined(_POSIX_SOURCE)
-#include <signal.h>
-#else
-#define _POSIX_SOURCE
-#include <signal.h>
-#undef _POSIX_SOURCE
-#endif
-#endif
-
 #include <sys/wait.h>
 #include <errno.h>
 #include <setjmp.h>
@@ -125,18 +112,14 @@ static void set_environment(void);
 static void Fatal(char *msg);
 static void Error(char *fmt, ...);
 
-#ifdef RETSIGTYPE /* autoconf AC_TYPE_SIGNAL */
-# define SIGVAL RETSIGTYPE
-#endif /* RETSIGTYPE */
-
-static SIGVAL
+static void
 sigCatch(int sig)
 {
     /* On system with POSIX signals, just interrupt the system call */
     gotSignal = sig;
 }
 
-static SIGVAL
+static void
 sigIgnore(int sig)
 {
 }
