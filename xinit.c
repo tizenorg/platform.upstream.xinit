@@ -252,11 +252,11 @@ main(int argc, char *argv[])
 
         xinitrcbuf[0] = '\0';
         if ((cp = getenv("XINITRC")) != NULL) {
-            (void) snprintf(xinitrcbuf, sizeof(xinitrcbuf), "%s", cp);
+            snprintf(xinitrcbuf, sizeof(xinitrcbuf), "%s", cp);
             required = True;
         } else if ((cp = getenv("HOME")) != NULL) {
-            (void) snprintf(xinitrcbuf, sizeof(xinitrcbuf),
-                            "%s/%s", cp, XINITRC);
+            snprintf(xinitrcbuf, sizeof(xinitrcbuf),
+                     "%s/%s", cp, XINITRC);
         }
         if (xinitrcbuf[0]) {
             if (access(xinitrcbuf, F_OK) == 0) {
@@ -280,11 +280,11 @@ main(int argc, char *argv[])
 
         xserverrcbuf[0] = '\0';
         if ((cp = getenv("XSERVERRC")) != NULL) {
-            (void) snprintf(xserverrcbuf, sizeof(xserverrcbuf), "%s", cp);
+            snprintf(xserverrcbuf, sizeof(xserverrcbuf), "%s", cp);
             required = True;
         } else if ((cp = getenv("HOME")) != NULL) {
-            (void) snprintf(xserverrcbuf, sizeof(xserverrcbuf),
-                            "%s/%s", cp, XSERVERRC);
+            snprintf(xserverrcbuf, sizeof(xserverrcbuf),
+                     "%s/%s", cp, XSERVERRC);
         }
         if (xserverrcbuf[0]) {
             if (access(xserverrcbuf, F_OK) == 0) {
@@ -456,17 +456,17 @@ startServer(char *server[])
          * don't hang on read/write to control tty
          */
 #ifdef SIGTTIN
-        (void) signal(SIGTTIN, SIG_IGN);
+        signal(SIGTTIN, SIG_IGN);
 #endif
 #ifdef SIGTTOU
-        (void) signal(SIGTTOU, SIG_IGN);
+        signal(SIGTTOU, SIG_IGN);
 #endif
         /*
          * ignore SIGUSR1 in child.  The server
          * will notice this and send SIGUSR1 back
          * at xinit when ready to accept connections
          */
-        (void) signal(SIGUSR1, SIG_IGN);
+        signal(SIGUSR1, SIG_IGN);
         /*
          * prevent server from getting sighup from vhangup()
          * if client is xterm -L
