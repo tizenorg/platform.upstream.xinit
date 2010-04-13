@@ -469,9 +469,7 @@ startServer(char *server[])
         /*
          * don't nice server
          */
-#ifdef PRIO_PROCESS
         setpriority(PRIO_PROCESS, serverpid, -1);
-#endif
 
         errno = 0;
         if(! processTimeout(0, "")) {
