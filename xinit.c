@@ -49,9 +49,7 @@ in this Software without prior written authorization from The Open Group.
 #endif
 #endif
 
-#ifndef SYSV
 #include <sys/wait.h>
-#endif
 #include <errno.h>
 #include <setjmp.h>
 #include <stdarg.h>
