@@ -629,10 +629,6 @@ startClient(char *client[])
     }
 }
 
-#ifndef HAVE_KILLPG
-#define killpg(pgrp, sig) kill(-(pgrp), sig)
-#endif
-
 static jmp_buf close_env;
 
 static int
