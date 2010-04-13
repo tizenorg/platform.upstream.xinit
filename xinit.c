@@ -337,7 +337,7 @@ waitforserver(void)
      * want to sleep now since we're going to sleep later anyways and this allows us
      * to avoid the awkard, "why is there an error message in the log" questions
      * from users.
-         */
+     */
 
     sleep(2);
 #endif
