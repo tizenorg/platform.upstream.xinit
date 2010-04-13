@@ -63,10 +63,6 @@ in this Software without prior written authorization from The Open Group.
 #endif
 #endif
 
-#if !defined(SIGCHLD) && defined(SIGCLD)
-#define SIGCHLD SIGCLD
-#endif
-
 #include <stdlib.h>
 
 #ifndef SHELL
@@ -293,9 +289,7 @@ main(int argc, char *argv[])
     /*
      * Start the server and client.
      */
-#ifdef SIGCHLD
     signal(SIGCHLD, SIG_DFL);    /* Insurance */
-#endif
 
     /* Let those signal interrupt the wait() call in the main loop */
     memset(&sa, 0, sizeof sa);
