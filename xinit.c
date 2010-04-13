@@ -115,13 +115,7 @@ static char **client = clientargv + 2;        /* make sure room for sh .xinitrc 
 static char *displayNum = NULL;
 static char *program = NULL;
 static Display *xd = NULL;            /* server connection */
-#ifndef SYSV
-#if defined(__CYGWIN__) || defined(SVR4) || defined(_POSIX_SOURCE) || defined(CSRG_BASED) || defined(__APPLE__)
 int status;
-#else
-union wait    status;
-#endif
-#endif /* SYSV */
 int serverpid = -1;
 int clientpid = -1;
 volatile int gotSignal = 0;
@@ -403,20 +397,8 @@ processTimeout(int timeout, char *string)
     static char    *laststring;
 
     for (;;) {
-#if defined(SYSV)
-        alarm(1);
-        if ((pidfound = wait(NULL)) == serverpid)
-            break;
-        alarm(0);
-#else /* SYSV */
-#if defined(SVR4) || defined(_POSIX_SOURCE) || defined(__APPLE__)
         if ((pidfound = waitpid(serverpid, &status, WNOHANG)) == serverpid)
             break;
-#else
-        if ((pidfound = wait3(&status, WNOHANG, NULL)) == serverpid)
-            break;
-#endif
-#endif /* SYSV */
         if (timeout) {
             if (i == 0 && string != laststring)
                 fprintf(stderr, "\r\nwaiting for %s ", string);
