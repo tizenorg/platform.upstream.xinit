@@ -68,28 +68,9 @@ in this Software without prior written authorization from The Open Group.
 #endif
 
 #include <stdlib.h>
-extern char **environ;
-char **newenviron = NULL;
-char **newenvironlast = NULL;
 
 #ifndef SHELL
 #define SHELL "sh"
-#endif
-
-#ifndef HAVE_WORKING_VFORK
-# ifndef vfork
-#  define vfork() fork()
-# endif
-#else
-# ifdef HAVE_VFORK_H
-#  include <vfork.h>
-# endif
-#endif
-
-#ifdef HAS_EXECVPE
-#define Execvpe(path, argv, envp) execvpe(path, argv, envp)
-#else
-#define Execvpe(path, argv, envp) execvp(path, argv)
 #endif
 
 const char *bindir = BINDIR;
@@ -147,7 +128,7 @@ int serverpid = -1;
 int clientpid = -1;
 volatile int gotSignal = 0;
 
-static void Execute(char **vec, char **envp);
+static void Execute(char **vec);
 static Bool waitforserver(void);
 static Bool processTimeout(int timeout, char *string);
 static int startServer(char *server[]);
@@ -186,14 +167,13 @@ sigUsr1(int sig)
 }
 
 static void
-Execute(char **vec,        /* has room from up above */
-        char **envp)
+Execute(char **vec)		/* has room from up above */
 {
-    Execvpe(vec[0], vec, envp);
+    execvp(vec[0], vec);
     if (access(vec[0], R_OK) == 0) {
-        vec--;                /* back it up to stuff shell in */
-        vec[0] = SHELL;
-        Execvpe(vec[0], vec, envp);
+	vec--;				/* back it up to stuff shell in */
+	vec[0] = SHELL;
+	execvp(vec[0], vec);
     }
     return;
 }
@@ -317,11 +297,6 @@ main(int argc, char *argv[])
             }
         }
     }
-
-    /*
-     * put the display name into the environment
-     */
-    set_environment();
 
     /*
      * Start the server and client.
@@ -497,7 +472,7 @@ startServer(char *server[])
          * if client is xterm -L
          */
         setpgid(0,getpid());
-        Execute(server, environ);
+        Execute(server);
         Error("no server \"%s\" in PATH\n", server[0]);
         {
             const char * const *cpp;
@@ -629,35 +604,39 @@ setWindowPath(void)
     windowpath = getenv("WINDOWPATH");
     numn = snprintf(nums, sizeof(nums), "%lu", num);
     if (!windowpath) {
-        len = 10 + 1 + numn + 1;
+        len = numn + 1;
         newwindowpath = malloc(len);
         if (newwindowpath == NULL)
             return;
-        snprintf(newwindowpath, len, "WINDOWPATH=%s", nums);
+        snprintf(newwindowpath, len, "%s", nums);
     } else {
-        len = 10 + 1 + strlen(windowpath) + 1 + numn + 1;
+        len = strlen(windowpath) + 1 + numn + 1;
         newwindowpath = malloc(len);
         if (newwindowpath == NULL)
             return;
-        snprintf(newwindowpath, len, "WINDOWPATH=%s:%s",
+        snprintf(newwindowpath, len, "%s:%s",
                  windowpath, nums);
     }
-    *newenvironlast++ = newwindowpath;
-    *newenvironlast = NULL;
+    if (setenv("WINDOWPATH", newwindowpath, TRUE) == -1)
+        fprintf(stderr, "%s:  unable to set WINDOWPATH\n", program);
+
+    free(newwindowpath);
 }
 
 static int
 startClient(char *client[])
 {
-    setWindowPath();
-    if ((clientpid = vfork()) == 0) {
+    clientpid = fork();
+    if (clientpid == 0) {
+        set_environment();
+        setWindowPath();
+
         if (setuid(getuid()) == -1) {
             Error("cannot change uid: %s\n", strerror(errno));
             _exit(ERR_EXIT);
         }
         setpgid(0, getpid());
-        environ = newenviron;
-        Execute(client,newenviron);
+        Execute(client);
         Error("no program named \"%s\" in PATH\r\n", client[0]);
         fprintf(stderr,
                 "\nSpecify a program on the command line or make sure that %s\r\n", bindir);
@@ -665,8 +644,9 @@ startClient(char *client[])
                 "is in your path.\r\n");
         fprintf(stderr, "\n");
         _exit(ERR_EXIT);
+    } else {
+        return clientpid;
     }
-    return (clientpid);
 }
 
 #ifndef HAVE_KILLPG
@@ -733,45 +713,13 @@ shutdown(void)
     return;
 }
 
-
-/*
- * make a new copy of environment that has room for DISPLAY
- */
-
 static void
 set_environment(void)
 {
-    int nenvvars;
-    char **newPtr, **oldPtr;
-    static char displaybuf[512];
-
-    /* count number of environment variables */
-    for (oldPtr = environ; *oldPtr; oldPtr++) ;
-
-    nenvvars = (oldPtr - environ);
-    newenviron = (char **) malloc((nenvvars + 3) * sizeof(char **));
-    if (!newenviron) {
-        fprintf(stderr,
-                "%s:  unable to allocate %d pointers for environment\n",
-                program, nenvvars + 3);
-        exit(1);
+    if (setenv("DISPLAY", displayNum, TRUE) == -1) {
+	fprintf(stderr, "%s:  unable to set DISPLAY\n", program);
+	exit(ERR_EXIT);
     }
-
-    /* put DISPLAY=displayname as first element */
-    snprintf(displaybuf, sizeof(displaybuf), "DISPLAY=%s", displayNum);
-    newPtr = newenviron;
-    *newPtr++ = displaybuf;
-
-    /* copy pointers to other variables */
-    for (oldPtr = environ; *oldPtr; oldPtr++) {
-        if (strncmp(*oldPtr, "DISPLAY=", 8) != 0
-            && strncmp(*oldPtr, "WINDOWPATH=", 11) != 0) {
-            *newPtr++ = *oldPtr;
-        }
-    }
-    *newPtr = NULL;
-    newenvironlast=newPtr;
-    return;
 }
 
 static void
