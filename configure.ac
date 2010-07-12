@@ -113,7 +113,7 @@ AC_ARG_WITH(launchd-id-prefix,  AS_HELP_STRING([--with-launchd-id-prefix=PATH], 
 
 if test "x$LAUNCHD" = "xauto"; then
 	unset LAUNCHD
-	AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
+	AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no], [$PATH$PATH_SEPARATOR/sbin])
 fi
 
 TIGER_LAUNCHD=no
