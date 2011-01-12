@@ -145,7 +145,6 @@ case $host_os in
         ;;
 esac
 
-AC_SUBST(XINIT_CFLAGS)
 AC_SUBST(XINIT_LIBS)
 
 AC_PATH_PROGS(MCOOKIE, [mcookie], [$MCOOKIE],
