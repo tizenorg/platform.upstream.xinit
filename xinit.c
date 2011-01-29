@@ -380,9 +380,8 @@ processTimeout(int timeout, char *string)
             else
                 fprintf(stderr, ".");
             fflush(stderr);
-        }
-        if (timeout)
             sleep(1);
+        }
         if (++i > timeout)
             break;
     }
