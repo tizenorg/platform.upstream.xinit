@@ -84,9 +84,9 @@ static void *redirect_thread(void *ctx) {
             int fd = ev->ident;
             asl_redirect *aslr;
 
-            if(fd == fds[0].fd) {
+            if(fd == fds[0].fd && !fds[0].closed) {
                 aslr = &fds[0];
-            } else if(fd == fds[1].fd) {
+            } else if(fd == fds[1].fd && !fds[1].closed) {
                 aslr = &fds[1];
             } else {
                 asl_log(fds[1].aslc, fds[1].aslm, ASL_LEVEL_ERR, "unexpected file descriptor: %d", fd);
@@ -96,12 +96,10 @@ static void *redirect_thread(void *ctx) {
             if(ev->flags & EV_EOF) {
                 EV_SET(&ev[1], aslr->fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
                 kevent(kq, &ev[1], 1, NULL, 0, NULL);
-                close(aslr->fd);
                 aslr->closed = 1;
-                continue;
             }
 
-            nbytes = read(fd, aslr->w, BUF_SIZE - (aslr->w - aslr->buf) - 1);
+            nbytes = read(aslr->fd, aslr->w, BUF_SIZE - (aslr->w - aslr->buf) - 1);
             if(nbytes > 0) {
                 nbytes += (aslr->w - aslr->buf);
                 aslr->buf[nbytes] = '\0';
@@ -122,6 +120,14 @@ static void *redirect_thread(void *ctx) {
                         aslr->w = aslr->buf;
                         break;
                     }
+                }
+            }
+
+            if(aslr->closed) {
+                close(aslr->fd);
+                if(aslr->w > aslr->buf) {
+                    *aslr->w = '\0';
+                    asl_log(aslr->aslc, aslr->aslm, aslr->level, "%s", aslr->buf);
                 }
             }
         }
