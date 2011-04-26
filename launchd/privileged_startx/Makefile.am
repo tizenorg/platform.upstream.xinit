@@ -41,6 +41,7 @@ CPP_FILES_FLAGS += -DTIGER_LAUNCHD
 endif
 
 dist_privileged_startx_SOURCES = \
+	../console_redirect.c \
 	server.c \
 	client.c \
 	privileged_startx.c

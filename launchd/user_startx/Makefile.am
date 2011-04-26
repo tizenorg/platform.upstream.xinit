@@ -23,10 +23,16 @@ include $(top_srcdir)/cpprules.in
 
 xinitrcdir = $(XINITDIR)
 
+xinitrc_PROGRAMS = launchd_startx
+
+AM_CPPFLAGS = -DXINITDIR=\"$(xinitrcdir)\" -DBINDIR=\"$(bindir)\" -DLAUNCHD_ID_PREFIX=\"$(launchdidprefix)\"
+
+dist_launchd_startx_SOURCES = \
+        ../console_redirect.c \
+        launchd_startx.c
+
 CPP_FILES_FLAGS = \
-	-DXINITDIR=$(XINITDIR) $(PROGCPPDEFS) -DLIBDIR=$(libdir) \
-	-DSHELL_CMD=$(SHELL_CMD) $(STARTX_COOKIE_FLAGS) \
-	-D__libexecdir__="$(libexecdir)" \
+	-D__xinitrcdir__="$(xinitrcdir)" \
 	-D__bindir__="$(bindir)" \
 	-DLAUNCHD_ID_PREFIX="$(launchdidprefix)"
 

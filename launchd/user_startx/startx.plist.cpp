@@ -6,6 +6,7 @@
 		<string>LAUNCHD_ID_PREFIX.startx</string>
 	<key>ProgramArguments</key>
 		<array>
+			<string>__xinitrcdir__/launchd_startx</string>
 			<string>__bindir__/startx</string>
 		</array>
 	<key>Sockets</key>

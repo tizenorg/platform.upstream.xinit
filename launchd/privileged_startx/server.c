@@ -1,4 +1,4 @@
-/* Copyright (c) 2008 Apple Inc.
+/* Copyright (c) 2008-2011 Apple Inc.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation files
@@ -77,6 +77,9 @@ struct idle_globals idle_globals;
 /* Default script dir */
 const char *script_dir = SCRIPTDIR;
 
+/* console_redirect.c */
+extern int console_redirect(aslclient aslc, aslmsg amsg, int stdout_level, int stderr_level);
+
 #ifndef LAUNCH_JOBKEY_MACHSERVICES
 static mach_port_t checkin_or_register(char *bname) {
     kern_return_t kr;
@@ -118,7 +121,10 @@ int server_main(const char *dir) {
     long idle_timeout = DEFAULT_IDLE_TIMEOUT;
 #endif
 
-    launch_data_t config = NULL, checkin = NULL;
+    launch_data_t config = NULL, checkin = NULL, label = NULL;
+    const char *labelstr = "privileged_startx";
+    aslclient aslc;
+
     checkin = launch_data_new_string(LAUNCH_KEY_CHECKIN);
     config = launch_msg(checkin);
     if (!config || launch_data_get_type(config) == LAUNCH_DATA_ERRNO) {
@@ -131,6 +137,14 @@ int server_main(const char *dir) {
         asl_log(NULL, NULL, ASL_LEVEL_DEBUG,
                 "script directory set: %s", script_dir);
     }
+
+    label = launch_data_dict_lookup(config, LAUNCH_JOBKEY_LABEL);
+    if (label) {
+        labelstr = launch_data_get_string(label);
+    }
+
+    aslc = asl_open(labelstr, "user", ASL_OPT_NO_DELAY);
+    (void)console_redirect(aslc, NULL, ASL_LEVEL_INFO, ASL_LEVEL_NOTICE);
 
 #ifdef LAUNCH_JOBKEY_MACHSERVICES
     launch_data_t tmv;
