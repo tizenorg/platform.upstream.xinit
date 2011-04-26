@@ -67,7 +67,8 @@ launchdaemons_DATA = $(launchdaemons_PRE:plist.cpp=plist)
 CLEANFILES = \
 	$(privstartx_SCRIPTS) \
 	$(BUILT_SOURCES) \
-	$(launchdaemons_DATA)
+	$(launchdaemons_DATA) \
+	$(launchdidprefix).privileged_startx.plist.cpp
 
 EXTRA_DIST = \
 	10-tmpdirs.cpp \

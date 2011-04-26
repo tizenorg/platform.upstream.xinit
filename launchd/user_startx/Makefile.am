@@ -37,3 +37,7 @@ launchagents_PRE = $(launchdidprefix).startx.plist.cpp
 launchagents_DATA = $(launchagents_PRE:plist.cpp=plist)
 
 EXTRA_DIST = startx.plist.cpp
+
+CLEANFILES = \
+	$(launchagents_DATA) \
+	$(launchdidprefix).startx.plist.cpp
