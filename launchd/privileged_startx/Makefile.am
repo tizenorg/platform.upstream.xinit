@@ -55,7 +55,7 @@ BUILT_SOURCES = \
 	privileged_startxServer.h \
 	privileged_startx.h
 
-$(launchdidprefix).privileged_startx.plist.cpp: org.x.privileged_startx.plist.cpp  
+$(launchdidprefix).privileged_startx.plist.cpp: privileged_startx.plist.cpp  
 	cp $< $@
 
 launchdaemons_PRE = $(launchdidprefix).privileged_startx.plist.cpp
@@ -72,7 +72,7 @@ CLEANFILES = \
 EXTRA_DIST = \
 	10-tmpdirs.cpp \
 	20-font_cache.cpp \
-	org.x.privileged_startx.plist.cpp \
+	privileged_startx.plist.cpp \
 	privileged_startx.defs \
 	privileged_startx_types.h
 

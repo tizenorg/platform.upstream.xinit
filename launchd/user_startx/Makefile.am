@@ -19,37 +19,9 @@
 #  TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 #  PERFORMANCE OF THIS SOFTWARE.
 
-bin_PROGRAMS = xinit
-bin_SCRIPTS = startx
-
-AM_CFLAGS = $(CWARNFLAGS) $(XINIT_CFLAGS)
-AM_CPPFLAGS = -DXINITDIR=\"$(XINITDIR)\" -DBINDIR=\"$(bindir)\"
-xinit_LDADD = $(XINIT_LIBS)
-
-xinit_SOURCES =	\
-        xinit.c
-
-appmandir = $(APP_MAN_DIR)
-
-appman_PRE = \
-	startx.man \
-        xinit.man
-
-appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
-
 include $(top_srcdir)/cpprules.in
 
 xinitrcdir = $(XINITDIR)
-
-PROGCPPDEFS = \
-	-DXRDB=@XRDB@ \
-	-DXMODMAP=@XMODMAP@ \
-	-DTWM=@TWM@ \
-	-DXCLOCK=@XCLOCK@ \
-	-DXTERM=@XTERM@ \
-	-DXSERVER=@XSERVER@ \
-	-DXAUTH=@XAUTH@ \
-	-DXINIT=@XINIT@
 
 CPP_FILES_FLAGS = \
 	-DXINITDIR=$(XINITDIR) $(PROGCPPDEFS) -DLIBDIR=$(libdir) \
@@ -58,26 +30,10 @@ CPP_FILES_FLAGS = \
 	-D__bindir__="$(bindir)" \
 	-DLAUNCHD_ID_PREFIX="$(launchdidprefix)"
 
-if LAUNCHD
-SUBDIRS = launchd
-endif
+$(launchdidprefix).startx.plist.cpp: startx.plist.cpp
+	cp $< $@
 
-DIST_SUBDIRS = launchd
+launchagents_PRE = $(launchdidprefix).startx.plist.cpp
+launchagents_DATA = $(launchagents_PRE:plist.cpp=plist)
 
-xinitrc_DATA = xinitrc
-
-MAINTAINERCLEANFILES = ChangeLog INSTALL
-CLEANFILES = xinitrc startx $(appman_DATA) $(launchagents_DATA)
-
-EXTRA_DIST = xinitrc.cpp startx.cpp $(appman_PRE)	\
-		autogen.sh
-
-.PHONY: ChangeLog INSTALL
-
-INSTALL:
-	$(INSTALL_CMD)
-
-ChangeLog:
-	$(CHANGELOG_CMD)
-
-dist-hook: ChangeLog INSTALL
+EXTRA_DIST = startx.plist.cpp
