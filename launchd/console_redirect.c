@@ -226,9 +226,9 @@ int main(int argc, char **argv) {
     system("/bin/echo SYST OUT");
     system("/bin/echo SYST ERR >&2");
     fprintf(stdout, "TEST OUT3\n");
-    fprintf(stdout, "TEST OUT4\n");
+    fprintf(stdout, "TEST OUT4");
     fprintf(stderr, "TEST ERR3\n");
-    fprintf(stderr, "TEST ERR4\n");
+    fprintf(stderr, "TEST ERR4");
 
     exit(0);
 }

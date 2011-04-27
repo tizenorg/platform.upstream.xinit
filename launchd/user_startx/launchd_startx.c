@@ -43,7 +43,7 @@ int main(int argc, char **argv, char **envp) {
     pid_t child;
     int pstat;
 
-    if(argc < 2 || strcmp(argv[1], "--help")) {
+    if(argc < 2 || strcmp(argv[1], "--help") == 0) {
         fprintf(stderr, "Usage: %s prog [args...]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
