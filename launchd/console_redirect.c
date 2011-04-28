@@ -64,7 +64,7 @@ static void *redirect_thread(void *ctx) {
     kq = kqueue();
     EV_SET(&ev[0], fds[0].fd, EVFILT_READ, EV_ADD, 0, 0, 0);
     EV_SET(&ev[1], fds[1].fd, EVFILT_READ, EV_ADD, 0, 0, 0);
-    n = kevent(kq, ev, 2, NULL, 0, NULL);
+    kevent(kq, ev, 2, NULL, 0, NULL);
 
     /* Set our buffers to empty */
     fds[0].w = fds[0].buf;
