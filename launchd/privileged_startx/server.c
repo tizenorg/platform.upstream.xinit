@@ -122,7 +122,7 @@ int server_main(const char *dir) {
 #endif
 
     launch_data_t config = NULL, checkin = NULL, label = NULL;
-    const char *labelstr = "privileged_startx";
+    const char *labelstr = BUNDLE_ID_PREFIX".privileged_startx";
     aslclient aslc;
 
     checkin = launch_data_new_string(LAUNCH_KEY_CHECKIN);
@@ -143,7 +143,7 @@ int server_main(const char *dir) {
         labelstr = launch_data_get_string(label);
     }
 
-    aslc = asl_open(labelstr, "user", ASL_OPT_NO_DELAY);
+    aslc = asl_open(labelstr, BUNDLE_ID_PREFIX, ASL_OPT_NO_DELAY);
     (void)console_redirect(aslc, NULL, ASL_LEVEL_INFO, ASL_LEVEL_NOTICE);
 
 #ifdef LAUNCH_JOBKEY_MACHSERVICES

@@ -52,7 +52,7 @@ int main(int argc, char **argv, char **envp) {
         exit(EXIT_FAILURE);
     }
 
-    aslc = asl_open(BUNDLE_ID_PREFIX".startx", "user", ASL_OPT_NO_DELAY);
+    aslc = asl_open(BUNDLE_ID_PREFIX".startx", BUNDLE_ID_PREFIX, ASL_OPT_NO_DELAY);
     (void)console_redirect(aslc, NULL, ASL_LEVEL_INFO, ASL_LEVEL_NOTICE);
 
     assert(posix_spawnp(&child, argv[1], NULL, NULL, &argv[1], envp) == 0);
