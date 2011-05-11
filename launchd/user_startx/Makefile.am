@@ -25,7 +25,7 @@ xinitrcdir = $(XINITDIR)
 
 xinitrc_PROGRAMS = launchd_startx
 
-AM_CPPFLAGS = -DXINITDIR=\"$(xinitrcdir)\" -DBINDIR=\"$(bindir)\" -DBUNDLE_ID_PREFIX=\"$(bundleidprefix)\"
+AM_CPPFLAGS = -DXINITDIR=\"$(xinitrcdir)\" -DBINDIR=\"$(bindir)\"
 
 dist_launchd_startx_SOURCES = \
         ../console_redirect.c \

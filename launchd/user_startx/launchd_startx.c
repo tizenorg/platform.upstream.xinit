@@ -26,6 +26,10 @@
  * prior written authorization.
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #include <asl.h>
 #include <unistd.h>
 #include <stdio.h>
