@@ -56,7 +56,7 @@ CPP_FILES_FLAGS = \
 	-DSHELL_CMD=$(SHELL_CMD) $(STARTX_COOKIE_FLAGS) \
 	-D__libexecdir__="$(libexecdir)" \
 	-D__bindir__="$(bindir)" \
-	-DLAUNCHD_ID_PREFIX="$(launchdidprefix)"
+	-DBUNDLE_ID_PREFIX="$(bundleidprefix)"
 
 if LAUNCHD
 SUBDIRS = launchd

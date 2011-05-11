@@ -25,7 +25,7 @@ xinitrcdir = $(XINITDIR)
 
 xinitrc_PROGRAMS = launchd_startx
 
-AM_CPPFLAGS = -DXINITDIR=\"$(xinitrcdir)\" -DBINDIR=\"$(bindir)\" -DLAUNCHD_ID_PREFIX=\"$(launchdidprefix)\"
+AM_CPPFLAGS = -DXINITDIR=\"$(xinitrcdir)\" -DBINDIR=\"$(bindir)\" -DBUNDLE_ID_PREFIX=\"$(bundleidprefix)\"
 
 dist_launchd_startx_SOURCES = \
         ../console_redirect.c \
@@ -34,16 +34,16 @@ dist_launchd_startx_SOURCES = \
 CPP_FILES_FLAGS = \
 	-D__xinitrcdir__="$(xinitrcdir)" \
 	-D__bindir__="$(bindir)" \
-	-DLAUNCHD_ID_PREFIX="$(launchdidprefix)"
+	-DBUNDLE_ID_PREFIX="$(bundleidprefix)"
 
-$(launchdidprefix).startx.plist.cpp: startx.plist.cpp
+$(bundleidprefix).startx.plist.cpp: startx.plist.cpp
 	cp $< $@
 
-launchagents_PRE = $(launchdidprefix).startx.plist.cpp
+launchagents_PRE = $(bundleidprefix).startx.plist.cpp
 launchagents_DATA = $(launchagents_PRE:plist.cpp=plist)
 
 EXTRA_DIST = startx.plist.cpp
 
 CLEANFILES = \
 	$(launchagents_DATA) \
-	$(launchdidprefix).startx.plist.cpp
+	$(bundleidprefix).startx.plist.cpp

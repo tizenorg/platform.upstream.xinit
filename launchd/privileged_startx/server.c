@@ -171,7 +171,7 @@ int server_main(const char *dir) {
 
     mp = launch_data_get_machport(svc);
 #else
-    mp = checkin_or_register(LAUNCHD_ID_PREFIX".privileged_startx");
+    mp = checkin_or_register(BUNDLE_ID_PREFIX".privileged_startx");
 #endif
 
     if (mp == MACH_PORT_NULL) {

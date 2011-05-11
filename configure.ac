@@ -104,9 +104,12 @@ AC_ARG_WITH(launchagents-dir,   AS_HELP_STRING([--with-launchagents-dir=PATH], [
 AC_ARG_WITH(launchdaemons-dir,  AS_HELP_STRING([--with-launchdaemons-dir=PATH], [Path to launchd's LaunchDaemonss directory (default: /Library/LaunchDaemons)]),
                                 [ launchdaemonsdir="${withval}" ],
                                 [ launchdaemonsdir="/Library/LaunchDaemons" ])
-AC_ARG_WITH(launchd-id-prefix,  AS_HELP_STRING([--with-launchd-id-prefix=PATH], [Prefix to use for launchd identifiers (default: org.x)]),
-                                [ launchdidprefix="${withval}" ],
-                                [ launchdidprefix="org.x" ])
+AC_ARG_WITH(launchd-id-prefix,  AS_HELP_STRING([--with-launchd-id-prefix=PATH], [Deprecated: Use --with-bundle-id-prefix.]),
+                                [ bundleidprefix="${withval}" ],
+                                [ bundleidprefix="org.x" ])
+AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=PATH], [Prefix to use for bundle identifiers (default: org.x)]),
+                                [ bundleidprefix="${withval}" ],
+                                [ bundleidprefix="org.x" ])
 
 if test "x$LAUNCHD" = "xauto"; then
 	unset LAUNCHD
@@ -126,10 +129,10 @@ else
         launchdaemonsdir=""
 fi
 
-AC_DEFINE_UNQUOTED(LAUNCHD_ID_PREFIX, "$launchdidprefix", [Prefix to use for launchd identifiers])
+AC_DEFINE_UNQUOTED(BUNDLE_ID_PREFIX, "$bundleidprefix", [Prefix to use for launchd identifiers])
 AC_SUBST([launchagentsdir])
 AC_SUBST([launchdaemonsdir])
-AC_SUBST([launchdidprefix])
+AC_SUBST([bundleidprefix])
 AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
 AM_CONDITIONAL(TIGER_LAUNCHD, [test "x$TIGER_LAUNCHD" = "xyes"])
 
