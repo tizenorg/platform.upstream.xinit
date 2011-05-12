@@ -108,8 +108,7 @@ AC_ARG_WITH(launchd-id-prefix,  AS_HELP_STRING([--with-launchd-id-prefix=PATH], 
                                 [ bundleidprefix="${withval}" ],
                                 [ bundleidprefix="org.x" ])
 AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=PATH], [Prefix to use for bundle identifiers (default: org.x)]),
-                                [ bundleidprefix="${withval}" ],
-                                [ bundleidprefix="org.x" ])
+                                [ bundleidprefix="${withval}" ])
 
 if test "x$LAUNCHD" = "xauto"; then
 	unset LAUNCHD
