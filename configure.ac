@@ -123,6 +123,9 @@ if test "x$LAUNCHD" = "xyes" ; then
 			TIGER_LAUNCHD=yes
 		;;
 	esac
+        AC_CHECK_FUNC(dispatch_async,
+                              AC_DEFINE([HAVE_LIBDISPATCH], 1, [Define to 1 if you have the libdispatch (GCD) available]),
+                              [])
 else
         launchagentsdir=""
         launchdaemonsdir=""

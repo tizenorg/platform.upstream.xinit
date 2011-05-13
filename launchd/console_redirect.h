@@ -26,39 +26,19 @@
  * prior written authorization.
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+#ifndef _XQUARTZ_CONSOLE_REDIRECT_H_
+#define _XQUARTZ_CONSOLE_REDIRECT_H_
 
 #include <asl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <assert.h>
-#include <spawn.h>
-#include <sys/wait.h>
-#include <string.h>
-#include <stdlib.h>
 
-#include "console_redirect.h"
+/* The given fd is replaced with a pipe.  Anything written to it will will be
+ * logged to ASL.
+ */
+int xi_asl_capture_fd(aslclient asl, aslmsg msg, int level, int fd);
 
-int main(int argc, char **argv, char **envp) {
-    aslclient aslc;
-    pid_t child;
-    int pstat;
+/* The given fd is read from and passed along to ASL until all write ends of the
+ * pipe are closed. Once the last writer has closed the pipe, we close our end.
+ */
+int xi_asl_log_fd(aslclient asl, aslmsg msg, int level, int fd);
 
-    if(argc < 2 || strcmp(argv[1], "--help") == 0) {
-        fprintf(stderr, "Usage: %s prog [args...]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
-    aslc = asl_open(BUNDLE_ID_PREFIX".startx", BUNDLE_ID_PREFIX, ASL_OPT_NO_DELAY);
-
-    xi_asl_capture_fd(aslc, NULL, ASL_LEVEL_INFO, STDOUT_FILENO);
-    xi_asl_capture_fd(aslc, NULL, ASL_LEVEL_NOTICE, STDERR_FILENO);
-
-    assert(posix_spawnp(&child, argv[1], NULL, NULL, &argv[1], envp) == 0);
-
-    wait4(child, &pstat, 0, (struct rusage *)0);
-
-    return pstat;
-}
+#endif

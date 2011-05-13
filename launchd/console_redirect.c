@@ -27,9 +27,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+#include <config.h>
+#else
+#define DEBUG_CONSOLE_REDIRECT 1
+#define HAVE_LIBDISPATCH 1
 #endif
 
+#include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -39,189 +43,364 @@
 #include <asl.h>
 #include <errno.h>
 #include <fcntl.h>
+
+#include "console_redirect.h"
+
+#define BUF_SIZE 512
+
+#ifdef HAVE_LIBDISPATCH
+#include <dispatch/dispatch.h>
+
+static dispatch_queue_t redirect_serial_q;
+static dispatch_group_t read_source_group;
+#else
 #include <pthread.h>
 
-#define BUF_SIZE 1024
+static pthread_t redirect_pthread;
+static pthread_mutex_t redirect_fds_lock = PTHREAD_MUTEX_INITIALIZER;
+
+static int kq;
+
+/* Notifications to our reader thread */
+#define ASL_REDIRECT_TERMINATE ((void *)(uintptr_t)1)
+#endif
 
 typedef struct {
-    /* Initialized values */
-    int fd;
     int level;
-    aslclient aslc;
-    aslmsg aslm;
+    aslclient asl;
+    aslmsg msg;
 
-    /* Buffer for reading */
-    char buf[BUF_SIZE];
+    /* Buffered reading */
+    char *buf;
     char *w;
-    int closed;
+
+#ifdef HAVE_LIBDISPATCH
+    dispatch_source_t read_source;
+#endif
 } asl_redirect;
 
-/* Redirect stdout/stderr to asl */
-static void *redirect_thread(void *ctx) {
-    asl_redirect *fds = ctx;
-    char *p, *s;
-    ssize_t nbytes;
-    struct kevent ev[2];
-    int kq, n;
+static asl_redirect *redirect_fds = NULL;
+static int n_redirect_fds = 0;
 
-    /* Setup our kqueue */
-    kq = kqueue();
-    EV_SET(&ev[0], fds[0].fd, EVFILT_READ, EV_ADD, 0, 0, 0);
-    EV_SET(&ev[1], fds[1].fd, EVFILT_READ, EV_ADD, 0, 0, 0);
-    kevent(kq, ev, 2, NULL, 0, NULL);
+/* Read from the FD until there is no more to read and redirect to ASL.
+ * Preconditions:
+ *      1: pthread_mutex_lock lock is held (pthreads) or called
+ *         from the appropriate serial queue for operating on
+ *         redirect_fds
+ *      2: fd corresponds to a valid entry in redirect_fds
+ *
+ * Return values:
+ *      If the pipe is closed, EOF is returned regardless of how many bytes
+ *      were processed.  If the pipe is still open, the number of read bytes
+ *      is returned.
+ */
+static inline int _read_redirect(int fd, int flush) {
+    int total_read = 0;
+    int nbytes;
+    asl_redirect *aslr = &redirect_fds[fd];
 
-    /* Set our buffers to empty */
-    fds[0].w = fds[0].buf;
-    fds[1].w = fds[1].buf;
+    while((nbytes = read(fd, aslr->w, BUF_SIZE - (aslr->w - aslr->buf) - 1)) > 0) {
+        char *s, *p;
 
-    /* Start off open */
-    fds[0].closed = fds[1].closed = 0;
+        /* Increment our returned number read */
+        total_read += nbytes;
 
-    while(!(fds[0].closed && fds[1].closed)) {
-        n = kevent(kq, NULL, 0, ev, 1, NULL);
-        if(n < 0) {
-            asl_log(fds[1].aslc, fds[1].aslm, ASL_LEVEL_ERR, "read failure: %s", strerror(errno));
-            break;
-        }
+        nbytes += (aslr->w - aslr->buf);
+        aslr->buf[nbytes] = '\0';
 
-        if(n == 1 && ev->filter == EVFILT_READ) {
-            int fd = ev->ident;
-            asl_redirect *aslr;
-
-            if(fd == fds[0].fd && !fds[0].closed) {
-                aslr = &fds[0];
-            } else if(fd == fds[1].fd && !fds[1].closed) {
-                aslr = &fds[1];
-            } else {
-                asl_log(fds[1].aslc, fds[1].aslm, ASL_LEVEL_ERR, "unexpected file descriptor: %d", fd);
+        /* One line at a time */
+        for(p=aslr->buf; *p && (p - aslr->buf) < nbytes; p = s + 1) {
+            // Find null or \n
+            for(s=p; *s && *s != '\n'; s++);
+            if(*s == '\n') {
+                *s='\0';
+                asl_log(aslr->asl, aslr->msg, aslr->level, "%s", p);
+            } else if(aslr->buf != p) {
+                memmove(aslr->buf, p, BUF_SIZE);
+                aslr->w = aslr->buf + (s - p);
+                break;
+            } else if(nbytes == BUF_SIZE - 1) {
+                asl_log(aslr->asl, aslr->msg, aslr->level, "%s", p);
+                aslr->w = aslr->buf;
                 break;
             }
+        }
+    }
 
-            if(ev->flags & EV_EOF) {
-                EV_SET(&ev[1], aslr->fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
-                kevent(kq, &ev[1], 1, NULL, 0, NULL);
-                aslr->closed = 1;
-            }
+    /* Flush if requested or we're at EOF */
+    if(flush || nbytes == 0) {
+        if(aslr->w > aslr->buf) {
+            *aslr->w = '\0';
+            asl_log(aslr->asl, aslr->msg, aslr->level, "%s", aslr->buf);
+        }
+    }
 
-            nbytes = read(aslr->fd, aslr->w, BUF_SIZE - (aslr->w - aslr->buf) - 1);
-            if(nbytes > 0) {
-                nbytes += (aslr->w - aslr->buf);
-                aslr->buf[nbytes] = '\0';
+    if(nbytes == 0)
+        return EOF;
+    return total_read;
+}
 
-                /* One line at a time */
-                for(p=aslr->buf; *p && (p - aslr->buf) < nbytes; p = s + 1) {
-                    // Find null or \n
-                    for(s=p; *s && *s != '\n'; s++);
-                    if(*s == '\n') {
-                        *s='\0';
-                        asl_log(aslr->aslc, aslr->aslm, aslr->level, "%s", p);
-                    } else if(aslr->buf != p) {
-                        memmove(aslr->buf, p, BUF_SIZE);
-                        aslr->w = aslr->buf + (s - p);
-                        break;
-                    } else if(nbytes == BUF_SIZE - 1) {
-                        asl_log(aslr->aslc, aslr->aslm, aslr->level, "%s", p);
-                        aslr->w = aslr->buf;
-                        break;
+#ifdef HAVE_LIBDISPATCH
+static void read_from_source(void *_source) {
+    dispatch_source_t source = (dispatch_source_t)_source;
+    int fd = dispatch_source_get_handle(source);
+    if(_read_redirect(fd, 0) == EOF) {
+        dispatch_source_cancel(source);
+    }
+}
+
+static void cancel_source(void *_source) {
+    dispatch_source_t source = (dispatch_source_t)_source;
+    int fd = dispatch_source_get_handle(source);
+    asl_redirect *aslr = &redirect_fds[fd];
+
+    /* Flush the buffer */
+    _read_redirect(fd, 1);
+
+    close(fd);
+    free(aslr->buf);
+    memset(aslr, 0, sizeof(*aslr));
+    dispatch_release(source);
+    dispatch_group_leave(read_source_group);
+}
+
+#else /* !HAVE_LIBDISPATCH */
+static void *redirect_thread(void *ctx __unused) {
+    struct kevent ev;
+    int n;
+
+    while(1) {
+        n = kevent(kq, NULL, 0, &ev, 1, NULL);
+
+        /* Bail on errors */
+        if(n < 0) {
+            asl_log(NULL, NULL, ASL_LEVEL_ERR, "kevent failure: %s", strerror(errno));
+            break;
+        }
+        
+        /* This should not happen */
+        if(n == 0)
+            continue;
+
+        switch(ev.filter) {
+            case EVFILT_READ:
+                pthread_mutex_lock(&redirect_fds_lock);
+                {
+                    int fd = ev.ident;
+                    int close_fd = 0;
+                    asl_redirect *aslr = &redirect_fds[fd];
+
+                    if(fd < 0 || fd >= n_redirect_fds || aslr->buf == NULL) {
+                        asl_log(NULL, NULL, ASL_LEVEL_ERR, "Unexpected file descriptor: %d", fd);
+                        goto next;
+                    }
+
+                    if(ev.flags & EV_EOF) {
+                        close_fd = 1;
+                        if(EOF != _read_redirect(fd, 1)) {
+                            asl_log(NULL, NULL, ASL_LEVEL_ERR, "kevent reported EOF on %d, but read doesn't concur.", fd);
+                        }
+                    } else {
+                        close_fd = (EOF == _read_redirect(fd, 0));
+                    }
+                    
+                    if(close_fd) {
+                        EV_SET(&ev, fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
+                        kevent(kq, &ev, 1, NULL, 0, NULL);
+                        close(fd);
+                        free(aslr->buf);
+                        memset(aslr, 0, sizeof(*aslr));
                     }
                 }
-            }
+                next:
+                pthread_mutex_unlock(&redirect_fds_lock);
 
-            if(aslr->closed) {
-                close(aslr->fd);
-                if(aslr->w > aslr->buf) {
-                    *aslr->w = '\0';
-                    asl_log(aslr->aslc, aslr->aslm, aslr->level, "%s", aslr->buf);
-                }
-            }
+            case EVFILT_TIMER:
+                if(ev.udata == ASL_REDIRECT_TERMINATE)
+                    return NULL;
+
+            default:
+                ;;
         }
     }
 
     return NULL;
 }
+#endif
 
-static pthread_t redirect_pthread;
 static void redirect_atexit(void) {
     /* stdout is linebuffered, so flush the buffer */
-    fflush(stdout);
+    if(redirect_fds[STDOUT_FILENO].buf)
+        fflush(stdout);
 
-    /* close our pipes, causing the redirect thread to terminate */
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
-    pthread_join(redirect_pthread, NULL);
+#ifdef HAVE_LIBDISPATCH
+    {
+        int i;
+
+        /* Cancel all of our dispatch sources, so they flush to ASL */
+        for(i=0; i < n_redirect_fds; i++)
+            if(redirect_fds[i].read_source)
+                dispatch_source_cancel(redirect_fds[i].read_source);
+
+        /* Wait at least three seconds for our sources to flush to ASL */
+        dispatch_group_wait(read_source_group, dispatch_time(DISPATCH_TIME_NOW, 3LL * NSEC_PER_SEC));
+    }
+#else
+    {
+        struct kevent ev;
+
+        /* Tell our reader thread it is time to pack up and go home */
+        EV_SET(&ev, 0, EVFILT_TIMER, EV_ADD | EV_ONESHOT, 0, 0, ASL_REDIRECT_TERMINATE);
+        kevent(kq, &ev, 1, NULL, 0, NULL);
+    
+        pthread_join(redirect_pthread, NULL);
+    }
+#endif
 }
 
-int console_redirect(aslclient aslc, aslmsg aslm, int stdout_level, int stderr_level) {
-    int err;
-    int outpair[2];
-    int errpair[2];
-    static asl_redirect readpair[2];
+#ifdef HAVE_LIBDISPATCH
+static void xi_asl_init(void *ctx __unused)
+#else
+static void xi_asl_init(void)
+#endif
+{
+    assert((redirect_fds = calloc(16, sizeof(*redirect_fds))) != NULL);
+    n_redirect_fds = 16;
 
-    /* Create pipes */
-    if(pipe(outpair) == -1) {
-        asl_log(aslc, aslm, ASL_LEVEL_ERR, "pipe() failed: %s", strerror(errno));
-        return errno;
+#ifdef HAVE_LIBDISPATCH
+    redirect_serial_q = dispatch_queue_create("com.apple.asl-redirect", NULL);
+    assert(redirect_serial_q != NULL);
+
+    read_source_group = dispatch_group_create();
+    assert(read_source_group != NULL);
+#else
+    assert((kq = kqueue()) != -1);
+    assert(pthread_create(&redirect_pthread, NULL, redirect_thread, NULL) == 0);
+#endif
+
+    atexit(redirect_atexit);
+}
+
+int xi_asl_log_fd(aslclient asl, aslmsg msg, int level, int fd) {
+#ifdef HAVE_LIBDISPATCH
+    int err __block = 0;
+    static dispatch_once_t once_control;
+    dispatch_once_f(&once_control, NULL, xi_asl_init);
+#else
+    int err = 0;
+    static pthread_once_t once_control = PTHREAD_ONCE_INIT;
+    assert(pthread_once(&once_control, xi_asl_init) == 0);
+#endif
+    
+    if(fd < 0)
+        return EBADF;
+    
+#ifdef HAVE_LIBDISPATCH
+#define BLOCK_DONE return
+    dispatch_sync(redirect_serial_q, ^
+#else
+#define BLOCK_DONE goto done
+    assert(pthread_mutex_lock(&redirect_fds_lock) == 0);
+#endif
+    {
+        /* Reallocate if we need more space */
+        if(fd >= n_redirect_fds) {
+            size_t new_n = 1 << (ffs(fd) + 1);
+            asl_redirect *new_array = realloc(redirect_fds, new_n * sizeof(*redirect_fds));
+            if(!new_array) {
+                err = errno;
+                BLOCK_DONE;
+            }
+            redirect_fds = new_array;
+            memset(redirect_fds + n_redirect_fds, 0, new_n - n_redirect_fds);
+            n_redirect_fds = new_n;
+        }
+        
+        /* If we're already listening on it, return error. */
+        if(redirect_fds[fd].buf != NULL) {
+            err = EBADF;
+            BLOCK_DONE;
+        }
+        
+        /* Initialize our buffer */
+        redirect_fds[fd].buf = (char *)malloc(BUF_SIZE);
+        if(redirect_fds[fd].buf == NULL) {
+            err = errno;
+            BLOCK_DONE;
+        }
+        redirect_fds[fd].w = redirect_fds[fd].buf;
+        
+        /* Store our ASL settings */
+        redirect_fds[fd].level = level;
+        redirect_fds[fd].asl = asl;
+        redirect_fds[fd].msg = msg;
+        
+        /* Don't block on reads from this fd */
+        fcntl(fd, F_SETFL, O_NONBLOCK);
+        
+        /* Start listening */
+#ifdef HAVE_LIBDISPATCH
+        {
+            dispatch_source_t read_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, fd, 0, redirect_serial_q);
+            redirect_fds[fd].read_source = read_source;
+            dispatch_set_context(read_source, read_source);
+            dispatch_source_set_event_handler_f(read_source, read_from_source);
+            dispatch_source_set_cancel_handler_f(read_source, cancel_source);
+            dispatch_group_enter(read_source_group);
+            dispatch_resume(read_source);
+        }
+#else
+        {
+            struct kevent ev;
+            EV_SET(&ev, fd, EVFILT_READ, EV_ADD, 0, 0, 0);
+            kevent(kq, &ev, 1, NULL, 0, NULL);
+        }
+#endif
     }
+#ifdef HAVE_LIBDISPATCH
+    );
+#else
+done:
+    assert(pthread_mutex_unlock(&redirect_fds_lock) == 0);
+#endif
+#undef BLOCK_DONE
+    
+    return err;
+}
 
-    if(pipe(errpair) == -1) {
-        asl_log(aslc, aslm, ASL_LEVEL_ERR, "pipe() failed: %s", strerror(errno));
-        close(outpair[0]);
-        close(outpair[1]);
+int xi_asl_capture_fd(aslclient asl, aslmsg msg, int level, int fd) {
+    int pipepair[2];
+    
+    /* Create pipe */
+    if(pipe(pipepair) == -1)
         return errno;
-    }
-
+    
     /* Close the read fd but not the write fd on exec */
-    fcntl(outpair[0], F_SETFD, FD_CLOEXEC);
-    fcntl(errpair[0], F_SETFD, FD_CLOEXEC);
+    if(fcntl(pipepair[0], F_SETFD, FD_CLOEXEC) == -1)
+        return errno;
 
-    /* Setup the context to handoff to the read thread */
-    readpair[0].fd = outpair[0];
-    readpair[0].level = stdout_level;
-    readpair[0].aslc = aslc;
-    readpair[0].aslm = aslm;
-
-    readpair[1].fd = errpair[0];
-    readpair[1].level = stderr_level;
-    readpair[1].aslc = aslc;
-    readpair[1].aslm = aslm;
-
-    /* Handoff to the read thread */
-    if((err = pthread_create(&redirect_pthread, NULL, redirect_thread, readpair)) != 0) {
-        asl_log(aslc, aslm, ASL_LEVEL_ERR, "pthread_create() failed: %s", strerror(err));
-        close(outpair[0]);
-        close(outpair[1]);
-        close(errpair[0]);
-        close(errpair[1]);
-        return err;
+    /* Replace the existing fd */
+    if(dup2(pipepair[1], fd) == -1) {
+        close(pipepair[0]);
+        close(pipepair[1]);
+        return errno;
     }
 
-    /* Replace our stdout fd.  force stdout to be line buffered since it defaults to buffered when not a tty */
-    if(dup2(outpair[1], STDOUT_FILENO) == -1) {
-        asl_log(aslc, aslm, ASL_LEVEL_ERR, "dup2(stdout) failed: %s", strerror(errno));
-    } else if(setlinebuf(stdout) != 0) {
-        asl_log(aslc, aslm, ASL_LEVEL_ERR, "setlinebuf(stdout) failed, log redirection may be delayed.");
-    }
-
-    /* Replace our stderr fd.  stderr is always unbuffered */
-    if(dup2(errpair[1], STDERR_FILENO) == -1) {
-        asl_log(aslc, aslm, ASL_LEVEL_ERR, "dup2(stderr) failed: %s", strerror(errno));
-    }
-
+    /* If we capture STDOUT_FILENO, make sure we linebuffer stdout */
+    if(fd == STDOUT_FILENO)
+        setlinebuf(stdout);
+    
     /* Close the duplicate fds since they've been reassigned */
-    close(outpair[1]);
-    close(errpair[1]);
+    close(pipepair[1]);
 
-    /* Register an atexit handler to wait for the logs to flush */
-    if(atexit(redirect_atexit) != 0) {
-        asl_log(aslc, aslm, ASL_LEVEL_ERR, "atexit(redirect_atexit) failed: %s", strerror(errno));
-    }
-
-    return 0;
+    /* Hand off the read end of our pipe to xi_asl_log_fd */
+    return xi_asl_log_fd(asl, msg, level, pipepair[0]);
 }
 
 #ifdef DEBUG_CONSOLE_REDIRECT
-int main(int argc, char **argv) {
-    console_redirect(NULL, NULL, ASL_LEVEL_NOTICE, ASL_LEVEL_ERR);
+int main(int argc __unused, char **argv __unused) {
+    xi_asl_capture_fd(NULL, NULL, ASL_LEVEL_NOTICE, STDOUT_FILENO);
+    xi_asl_capture_fd(NULL, NULL, ASL_LEVEL_ERR, STDERR_FILENO);
 
     fprintf(stderr, "TEST ERR1\n");
     fprintf(stdout, "TEST OUT1\n");
@@ -230,9 +409,9 @@ int main(int argc, char **argv) {
     system("/bin/echo SYST OUT");
     system("/bin/echo SYST ERR >&2");
     fprintf(stdout, "TEST OUT3\n");
-    fprintf(stdout, "TEST OUT4");
+    fprintf(stdout, "TEST OUT4\n");
     fprintf(stderr, "TEST ERR3\n");
-    fprintf(stderr, "TEST ERR4");
+    fprintf(stderr, "TEST ERR4\n");
 
     exit(0);
 }

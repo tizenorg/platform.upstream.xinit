@@ -25,11 +25,11 @@ xinitrcdir = $(XINITDIR)
 
 xinitrc_PROGRAMS = launchd_startx
 
-AM_CPPFLAGS = -DXINITDIR=\"$(xinitrcdir)\" -DBINDIR=\"$(bindir)\"
+AM_CPPFLAGS = -I$(srcdir)/.. -DXINITDIR=\"$(xinitrcdir)\" -DBINDIR=\"$(bindir)\"
 
 dist_launchd_startx_SOURCES = \
-        ../console_redirect.c \
-        launchd_startx.c
+	$(srcdir)/../console_redirect.c \
+	launchd_startx.c
 
 CPP_FILES_FLAGS = \
 	-D__xinitrcdir__="$(xinitrcdir)" \

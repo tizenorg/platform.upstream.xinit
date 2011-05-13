@@ -46,6 +46,8 @@
 #include <asl.h>
 #include <errno.h>
 
+#include "console_redirect.h"
+
 #include "privileged_startx.h"
 #include "privileged_startxServer.h"
 
@@ -76,9 +78,6 @@ struct idle_globals idle_globals;
 
 /* Default script dir */
 const char *script_dir = SCRIPTDIR;
-
-/* console_redirect.c */
-extern int console_redirect(aslclient aslc, aslmsg amsg, int stdout_level, int stderr_level);
 
 #ifndef LAUNCH_JOBKEY_MACHSERVICES
 static mach_port_t checkin_or_register(char *bname) {
@@ -144,7 +143,8 @@ int server_main(const char *dir) {
     }
 
     aslc = asl_open(labelstr, BUNDLE_ID_PREFIX, ASL_OPT_NO_DELAY);
-    (void)console_redirect(aslc, NULL, ASL_LEVEL_INFO, ASL_LEVEL_NOTICE);
+    xi_asl_capture_fd(aslc, NULL, ASL_LEVEL_INFO, STDOUT_FILENO);
+    xi_asl_capture_fd(aslc, NULL, ASL_LEVEL_NOTICE, STDERR_FILENO);
 
 #ifdef LAUNCH_JOBKEY_MACHSERVICES
     launch_data_t tmv;
