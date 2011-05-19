@@ -50,7 +50,7 @@ DEFAULT_XTERM=xterm
 DEFAULT_XSERVER=${bindir}/X
 DEFAULT_XAUTH=xauth
 DEFAULT_XINIT=xinit
-DEFAULT_XINITDIR=${libdir}/X11/xinit
+DEFAULT_XINITDIR=${sysconfdir}/X11/xinit
 
 AC_ARG_WITH(xrdb,
 	 AS_HELP_STRING([--with-xrdb=XRDB], [Path to xrdb]),
