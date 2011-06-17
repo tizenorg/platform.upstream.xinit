@@ -19,6 +19,11 @@
 #  TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 #  PERFORMANCE OF THIS SOFTWARE.
 
+SUBDIRS = man
+if LAUNCHD
+SUBDIRS += launchd
+endif
+
 bin_PROGRAMS = xinit
 bin_SCRIPTS = startx
 
@@ -49,13 +54,6 @@ CPP_FILES_FLAGS = \
 	-D__libexecdir__="$(libexecdir)" \
 	-D__bindir__="$(bindir)" \
 	-DBUNDLE_ID_PREFIX="$(bundleidprefix)"
-
-SUBDIRS = man
-if LAUNCHD
-SUBDIRS += launchd
-endif
-
-DIST_SUBDIRS = launchd man
 
 xinitrc_DATA = xinitrc
 
