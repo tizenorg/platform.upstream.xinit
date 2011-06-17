@@ -29,24 +29,7 @@ xinit_LDADD = $(XINIT_LIBS)
 xinit_SOURCES =	\
         xinit.c
 
-appmandir = $(APP_MAN_DIR)
-appman_PRE = startx.man  xinit.man
-appman_DATA = $(appman_PRE:man=$(APP_MAN_SUFFIX))
-
-# String replacements in MAN_SUBSTS now come from xorg-macros.m4 via configure
-MAN_SUBSTS+=	-e 's|__XSERVERNAME__|$(XSERVERNAME)|g' \
-		-e 's|__XCONFIGFILE__|$(XCONFIGFILE)|g' \
-		-e 's|__XCONFIGFILEMAN__|$(XCONFIGFILEMAN)|g' \
-		-e 's|__xinitdir__|$(XINITDIR)|g' \
-		-e 's|__bindir__|$(bindir)|g' \
-		-e 's|__libdir__|$(libdir)|g' \
-		-e 's|__SCOMAN__|$(SCOMAN)|g'
-
 include $(top_srcdir)/cpprules.in
-
-SUFFIXES += .$(APP_MAN_SUFFIX) .man
-.man.$(APP_MAN_SUFFIX):
-	$(AM_V_GEN)$(SED) $(MAN_SUBSTS) < $< > $@
 
 xinitrcdir = $(XINITDIR)
 
@@ -67,18 +50,19 @@ CPP_FILES_FLAGS = \
 	-D__bindir__="$(bindir)" \
 	-DBUNDLE_ID_PREFIX="$(bundleidprefix)"
 
+SUBDIRS = man
 if LAUNCHD
-SUBDIRS = launchd
+SUBDIRS += launchd
 endif
 
-DIST_SUBDIRS = launchd
+DIST_SUBDIRS = launchd man
 
 xinitrc_DATA = xinitrc
 
 MAINTAINERCLEANFILES = ChangeLog INSTALL
-CLEANFILES = xinitrc startx $(appman_DATA) $(launchagents_DATA)
+CLEANFILES = xinitrc startx $(launchagents_DATA)
 
-EXTRA_DIST = xinitrc.cpp startx.cpp $(appman_PRE)	\
+EXTRA_DIST = xinitrc.cpp startx.cpp \
 		autogen.sh
 
 .PHONY: ChangeLog INSTALL

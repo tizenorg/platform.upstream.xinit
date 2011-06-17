@@ -204,8 +204,9 @@ AC_SUBST(XAUTH)
 AC_SUBST(XINIT)
 AC_SUBST(XINITDIR)
 
-AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([launchd/Makefile])
-AC_CONFIG_FILES([launchd/privileged_startx/Makefile])
-AC_CONFIG_FILES([launchd/user_startx/Makefile])
+AC_CONFIG_FILES([Makefile
+	man/Makefile
+	launchd/Makefile
+	launchd/privileged_startx/Makefile
+	launchd/user_startx/Makefile])
 AC_OUTPUT
