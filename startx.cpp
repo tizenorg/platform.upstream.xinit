@@ -130,6 +130,11 @@ if defaults read $X11_PREFS_DOMAIN dpi > /dev/null 2>&1 ; then
     defaultserverargs="$defaultserverargs -dpi `defaults read $X11_PREFS_DOMAIN dpi`"
 fi
 
+#else
+enable_xauth=1
+#endif
+
+XCOMM Automatically determine an unused $DISPLAY
 d=0
 while true ; do
     [ -e /tmp/.X$d-lock ] || break
@@ -137,10 +142,6 @@ while true ; do
 done
 defaultdisplay=":$d"
 unset d
-
-#else
-enable_xauth=1
-#endif
 
 #if defined(__SCO__) || defined(__UNIXWARE__)
 
