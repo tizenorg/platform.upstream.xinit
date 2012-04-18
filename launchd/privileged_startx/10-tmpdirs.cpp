@@ -46,7 +46,7 @@ for dir in /tmp/.ICE-unix /tmp/.X11-unix /tmp/.font-unix ; do
 			success=1
 			break
 		else
-			saved=$(${MKTEMP} -d /tmp/${dir}-XXXXXXXX)
+			saved=$(${MKTEMP} -d ${dir}-XXXXXXXX)
 			mv ${dir} ${saved}
 			echo "${dir} exists but is insecure.  It has been moved into ${saved}"
 		fi
