@@ -141,7 +141,7 @@ AM_CONDITIONAL(TIGER_LAUNCHD, [test "x$TIGER_LAUNCHD" = "xyes"])
 AM_CONDITIONAL(LAUNCHAGENT_XSERVER, [test "x$launchagentxserver" != "xno"])
 
 # Checks for pkg-config packages
-PKG_CHECK_MODULES(XINIT, x11)
+PKG_CHECK_MODULES(XINIT, x11 xproto >= 7.0.17)
 
 case $host_os in
     *bsd*)

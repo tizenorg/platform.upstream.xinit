@@ -653,6 +653,7 @@ verrorx(const char *fmt, va_list ap)
 }
 
 static void
+_X_NORETURN
 Fatal(const char *fmt, ...)
 {
     va_list ap;
@@ -663,6 +664,7 @@ Fatal(const char *fmt, ...)
 }
 
 static void
+_X_NORETURN
 Fatalx(const char *fmt, ...)
 {
     va_list ap;
