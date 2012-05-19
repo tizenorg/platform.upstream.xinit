@@ -41,14 +41,14 @@ STAT=/usr/bin/stat
 for dir in /tmp/.ICE-unix /tmp/.X11-unix /tmp/.font-unix ; do
 	success=0
 	for attempt in 1 2 3 4 5 ; do
-		check=`${STAT} -f '%#p %u %g' ${dir}`
+		check=`${STAT} -f '%#p %u %g' ${dir} 2> /dev/null`
 		if [ "${check}" = "041777 0 0" ] ; then
 			success=1
 			break
-		else
+		elif [ -n "${check}" ] ; then
 			saved=$(${MKTEMP} -d ${dir}-XXXXXXXX)
 			mv ${dir} ${saved}
-			echo "${dir} exists but is insecure.  It has been moved into ${saved}"
+			echo "${dir} exists but is insecure.  It has been moved into ${saved}" >&2
 		fi
 
 		# Use mktemp rather than mkdir to avoid possible security issue
