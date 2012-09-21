@@ -56,7 +56,7 @@ for dir in /tmp/.ICE-unix /tmp/.X11-unix /tmp/.font-unix ; do
 		# against the above check)
 		if ${MKTEMP} -d ${dir} >& /dev/null ; then
 			chmod 1777 $dir
-			chown 0:0 $dir
+			chown root:wheel $dir
 			success=1
 			break
 		fi
