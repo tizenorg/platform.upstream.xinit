@@ -91,8 +91,10 @@ if [ -d XINITDIR/xinitrc.d ] ; then
 	unset f
 fi
 
-TWM &
+if [ -x /usr/X11R6/bin/fvwm -o -x /usr/bin/fvwm]; then
+    exec fvwm
+fi
 XCLOCK -geometry 50x50-1+1 &
 XTERM -geometry 80x50+494+51 &
 XTERM -geometry 80x20+494-0 &
-exec XTERM -geometry 80x66+0+0 -name login
+exec TWM
