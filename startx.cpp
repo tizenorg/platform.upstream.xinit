@@ -432,6 +432,7 @@ fi
 XCOMM handle TCP port 6000
 test "$DISPLAYMANAGER_XSERVER_TCP_PORT_6000_OPEN" != "yes" && \
   serverargs="$serverargs -nolisten tcp"
+export XAUTHLOCALHOSTNAME=`hostname`
 
 #if defined(__APPLE__) || defined(__CYGWIN__)
 eval XINIT \"$client\" $clientargs -- \"$server\" $display $serverargs
