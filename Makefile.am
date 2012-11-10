@@ -24,6 +24,8 @@ if LAUNCHD
 SUBDIRS += launchd
 endif
 
+XINITDIR = /etc/X11/xinit
+
 bin_PROGRAMS = xinit
 bin_SCRIPTS = startx
 
