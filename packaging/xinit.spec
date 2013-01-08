@@ -27,8 +27,7 @@ terminate.
 %setup -q
 
 %build
-autoreconf -fi
-%configure
+%configure --with-xinitdir=%{_sysconfdir}/X11/xinit/
 make %{?_smp_mflags}
 
 %install
