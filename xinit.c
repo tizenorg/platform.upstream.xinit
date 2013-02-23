@@ -114,10 +114,10 @@ static int ignorexio(Display *dpy);
 static void shutdown(void);
 static void set_environment(void);
 
-static void Fatal(const char *fmt, ...);
-static void Error(const char *fmt, ...);
-static void Fatalx(const char *fmt, ...);
-static void Errorx(const char *fmt, ...);
+static void Fatal(const char *fmt, ...) _X_ATTRIBUTE_PRINTF(1,2) _X_NORETURN;
+static void Error(const char *fmt, ...) _X_ATTRIBUTE_PRINTF(1,2);
+static void Fatalx(const char *fmt, ...) _X_ATTRIBUTE_PRINTF(1,2) _X_NORETURN;
+static void Errorx(const char *fmt, ...) _X_ATTRIBUTE_PRINTF(1,2);
 
 static void
 sigCatch(int sig)
@@ -636,7 +636,7 @@ set_environment(void)
         Fatal("unable to set DISPLAY");
 }
 
-static void
+static void _X_ATTRIBUTE_PRINTF(1,0)
 verror(const char *fmt, va_list ap)
 {
     fprintf(stderr, "%s: ", program);
@@ -644,7 +644,7 @@ verror(const char *fmt, va_list ap)
     fprintf(stderr, ": %s\n", strerror(errno));
 }
 
-static void
+static void _X_ATTRIBUTE_PRINTF(1,0)
 verrorx(const char *fmt, va_list ap)
 {
     fprintf(stderr, "%s: ", program);
@@ -653,7 +653,6 @@ verrorx(const char *fmt, va_list ap)
 }
 
 static void
-_X_NORETURN
 Fatal(const char *fmt, ...)
 {
     va_list ap;
@@ -664,7 +663,6 @@ Fatal(const char *fmt, ...)
 }
 
 static void
-_X_NORETURN
 Fatalx(const char *fmt, ...)
 {
     va_list ap;
