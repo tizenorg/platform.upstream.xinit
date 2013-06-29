@@ -6,6 +6,7 @@ Summary:        X Window System initializer
 Url:            http://xorg.freedesktop.org/
 Group:          System/X11/Utilities
 Source0:        http://xorg.freedesktop.org/releases/individual/app/%{name}-%{version}.tar.bz2
+Source1001: 	xinit.manifest
 BuildRequires:  libtool
 BuildRequires:  pkg-config
 BuildRequires:  pkgconfig(x11)
@@ -25,6 +26,7 @@ terminate.
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 %build
 %configure --with-xinitdir=%{_sysconfdir}/X11/xinit/
@@ -34,6 +36,7 @@ make %{?_smp_mflags}
 %make_install
 
 %files
+%manifest %{name}.manifest
 %defattr(-,root,root)
 %license COPYING
 %config %{_sysconfdir}/X11/xinit/
