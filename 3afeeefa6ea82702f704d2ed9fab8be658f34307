@@ -1,0 +1,8 @@
+Change-Id: I3afeeefa6ea82702f704d2ed9fab8be658f34307
+Code-Review+2: Ryan Ware <ware@linux.intel.com>
+Verified+1: Ryan Ware <ware@linux.intel.com>
+Submitted-by: Ryan Ware <ware@linux.intel.com>
+Submitted-at: Mon, 08 Jul 2013 09:38:54 -0700
+Reviewed-on: https://review.tizen.org/gerrit/4957
+Project: platform/upstream/xinit
+Branch: refs/heads/tizen
