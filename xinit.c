@@ -107,7 +107,7 @@ volatile int gotSignal = 0;
 
 static void Execute(char **vec);
 static Bool waitforserver(void);
-static Bool processTimeout(int timeout, char *string);
+static Bool processTimeout(int timeout, const char *string);
 static int startServer(char *server[]);
 static int startClient(char *client[]);
 static int ignorexio(Display *dpy);
@@ -364,10 +364,10 @@ waitforserver(void)
  * return TRUE if we timeout waiting for pid to exit, FALSE otherwise.
  */
 static Bool
-processTimeout(int timeout, char *string)
+processTimeout(int timeout, const char *string)
 {
     int    i = 0, pidfound = -1;
-    static char    *laststring;
+    static const char    *laststring;
 
     for (;;) {
         if ((pidfound = waitpid(serverpid, &status, WNOHANG)) == serverpid)
