@@ -627,6 +627,26 @@ shutdown(void)
 
     if (processTimeout(3, "server to die"))
         Fatalx("X server refuses to die");
+#ifdef __sun
+    else {
+        /* Restore keyboard mode. */
+        serverpid = fork();
+        switch (serverpid) {
+        case 0:
+            execlp ("kbd_mode", "kbd_mode", "-a", NULL);
+            Fatal("Unable to run program \"%s\"", "kbd_mode");
+            break;
+
+        case 1:
+            Error("fork failed");
+            break;
+
+        default:
+            fprintf (stderr, "\r\nRestoring keyboard mode\r\n");
+            processTimeout(1, "kbd_mode");
+        }
+    }
+#endif
 }
 
 static void
