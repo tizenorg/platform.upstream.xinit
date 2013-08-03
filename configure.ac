@@ -153,17 +153,26 @@ esac
 AC_PATH_PROGS(MCOOKIE, [mcookie], [$MCOOKIE],
   [$PATH:/bin:/usr/bin:/usr/lib:/usr/libexec:/usr/local/bin])
 
-case $host_os in
-	*openbsd*)
-	MCOOKIE='/usr/sbin/openssl rand -hex 16'
-	;;
-	*solaris*)
-	MCOOKIE="/usr/bin/od -X -A n -N 16 /dev/urandom | /usr/bin/tr -d ' '"
-	;;
-esac
-
+# If mcookie not found, try openssl, else per-system fallbacks
+if test "x$MCOOKIE" = x ; then
+    AC_PATH_PROGS(OPENSSL, [openssl], [$OPENSSL],
+        [$PATH:/bin:/usr/bin:/usr/sbin:/usr/lib:/usr/libexec:/usr/local/bin])
+    if test "x$OPENSSL" != x ; then
+        MCOOKIE="$OPENSSL rand -hex 16"
+    else
+        case $host_os in
+            *openbsd*)
+                MCOOKIE='/usr/sbin/openssl rand -hex 16'
+                ;;
+            *solaris*)
+                MCOOKIE="/usr/bin/od -X -A n -N 16 /dev/urandom | /usr/bin/tr -d ' '"
+                ;;
+        esac
+    fi
+fi
 if test "x$MCOOKIE" != x ; then
 	STARTX_COOKIE_FLAGS='-DHAS_COOKIE_MAKER -DMK_COOKIE="$(MCOOKIE)"'
+	AC_MSG_NOTICE([startx will depend on "$MCOOKIE" to generate xauth cookies])
 fi
 AC_SUBST(STARTX_COOKIE_FLAGS)
 
