@@ -101,15 +101,15 @@ static char *displayNum = NULL;
 static char *program = NULL;
 static Display *xd = NULL;            /* server connection */
 int status;
-int serverpid = -1;
-int clientpid = -1;
+pid_t serverpid = -1;
+pid_t clientpid = -1;
 volatile int gotSignal = 0;
 
 static void Execute(char **vec);
 static Bool waitforserver(void);
 static Bool processTimeout(int timeout, const char *string);
-static int startServer(char *server[]);
-static int startClient(char *client[]);
+static pid_t startServer(char *server[]);
+static pid_t startClient(char *client[]);
 static int ignorexio(Display *dpy);
 static void shutdown(void);
 static void set_environment(void);
@@ -149,7 +149,7 @@ main(int argc, char *argv[])
     register char **sptr = server;
     register char **cptr = client;
     register char **ptr;
-    int pid;
+    pid_t pid;
     int client_given = 0, server_given = 0;
     int client_args_given = 0, server_args_given = 0;
     int start_of_client_args, start_of_server_args;
@@ -366,7 +366,8 @@ waitforserver(void)
 static Bool
 processTimeout(int timeout, const char *string)
 {
-    int    i = 0, pidfound = -1;
+    int    i = 0;
+    pid_t  pidfound = -1;
     static const char    *laststring;
 
     for (;;) {
@@ -388,7 +389,7 @@ processTimeout(int timeout, const char *string)
     return (serverpid != pidfound);
 }
 
-static int
+static pid_t
 startServer(char *server[])
 {
     sigset_t mask, old;
@@ -554,7 +555,7 @@ setWindowPath(void)
     free(newwindowpath);
 }
 
-static int
+static pid_t
 startClient(char *client[])
 {
     clientpid = fork();
