@@ -1,12 +1,15 @@
 Name:           xinit
 Version:        1.3.2
-Release:        0
+Release:        1
 License:        MIT
 Summary:        X Window System initializer
 Url:            http://xorg.freedesktop.org/
 Group:          System/X11/Utilities
 Source0:        http://xorg.freedesktop.org/releases/individual/app/%{name}-%{version}.tar.bz2
 Source1001: 	xinit.manifest
+BuildRequires: autoconf
+BuildRequires: automake
+BuildRequires: dbus-devel
 BuildRequires:  libtool
 BuildRequires:  pkg-config
 BuildRequires:  pkgconfig(x11)
@@ -16,6 +19,8 @@ Requires:       xauth
 Requires:       xmodmap
 Requires:       xrdb
 Requires:       xsetroot
+Requires: xorg-x11-server-utils
+Requires: xkeyboard-config
 
 %description
 The xinit program is used to start the X Window System server and a
@@ -29,7 +34,7 @@ terminate.
 cp %{SOURCE1001} .
 
 %build
-%configure --with-xinitdir=%{_sysconfdir}/X11/xinit/
+%configure --with-xinitdir=%{_sysconfdir}/X11/xinit/ CFLAGS="${CFLAGS} -D_F_EXIT_AFTER_XORG_AND_XCLIENT_LAUNCHED_ "
 make %{?_smp_mflags}
 
 %install
@@ -40,7 +45,7 @@ make %{?_smp_mflags}
 %defattr(-,root,root)
 %license COPYING
 %config %{_sysconfdir}/X11/xinit/
-%{_bindir}/startx
+#%{_bindir}/startx
 %{_bindir}/xinit
 %{_mandir}/man1/startx.1%{?ext_man}
 %{_mandir}/man1/xinit.1%{?ext_man}
