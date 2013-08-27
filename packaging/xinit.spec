@@ -20,7 +20,6 @@ Requires:       xmodmap
 Requires:       xrdb
 Requires:       xsetroot
 Requires: xorg-x11-server-utils
-Requires: xkeyboard-config
 
 %description
 The xinit program is used to start the X Window System server and a
