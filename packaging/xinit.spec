@@ -1,3 +1,5 @@
+%define _unpackaged_files_terminate_build 0
+
 Name:           xinit
 Version:        1.3.2
 Release:        1
@@ -20,7 +22,6 @@ Requires:       xmodmap
 Requires:       xrdb
 Requires:       xsetroot
 Requires: xorg-x11-server-utils
-Requires: xkeyboard-config
 
 %description
 The xinit program is used to start the X Window System server and a
@@ -45,7 +46,6 @@ make %{?_smp_mflags}
 %defattr(-,root,root)
 %license COPYING
 %config %{_sysconfdir}/X11/xinit/
-#%{_bindir}/startx
 %{_bindir}/xinit
 %{_mandir}/man1/startx.1%{?ext_man}
 %{_mandir}/man1/xinit.1%{?ext_man}
