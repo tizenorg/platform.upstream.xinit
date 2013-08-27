@@ -20,7 +20,6 @@ Requires:       xmodmap
 Requires:       xrdb
 Requires:       xsetroot
 Requires: xorg-x11-server-utils
-Requires: xkeyboard-config
 
 %description
 The xinit program is used to start the X Window System server and a
@@ -39,13 +38,13 @@ make %{?_smp_mflags}
 
 %install
 %make_install
+rm -f %{buildroot}/usr/bin/startx
 
 %files
 %manifest %{name}.manifest
 %defattr(-,root,root)
 %license COPYING
 %config %{_sysconfdir}/X11/xinit/
-#%{_bindir}/startx
 %{_bindir}/xinit
 %{_mandir}/man1/startx.1%{?ext_man}
 %{_mandir}/man1/xinit.1%{?ext_man}
