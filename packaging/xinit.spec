@@ -1,3 +1,5 @@
+%bcond_with x
+
 Name:           xinit
 Version:        1.3.2
 Release:        1
@@ -20,6 +22,10 @@ Requires:       xmodmap
 Requires:       xrdb
 Requires:       xsetroot
 Requires: xorg-x11-server-utils
+
+%if !%{with x}
+ExclusiveArch:
+%endif
 
 %description
 The xinit program is used to start the X Window System server and a
