@@ -1,7 +1,7 @@
 %bcond_with x
 
 Name:           xinit
-Version:        1.3.2
+Version:        1.3.3
 Release:        1
 License:        MIT
 Summary:        X Window System initializer
@@ -39,7 +39,7 @@ terminate.
 cp %{SOURCE1001} .
 
 %build
-%configure --with-xinitdir=%{_sysconfdir}/X11/xinit/ CFLAGS="${CFLAGS} -D_F_EXIT_AFTER_XORG_AND_XCLIENT_LAUNCHED_ "
+%autogen --with-xinitdir=%{_sysconfdir}/X11/xinit/ CFLAGS="${CFLAGS} -D_F_EXIT_AFTER_XORG_AND_XCLIENT_LAUNCHED_ "
 make %{?_smp_mflags}
 
 %install
