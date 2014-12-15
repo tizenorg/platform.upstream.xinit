@@ -21,7 +21,6 @@ Requires:       xauth
 Requires:       xmodmap
 Requires:       xrdb
 Requires:       xsetroot
-Requires: xorg-x11-server-utils
 
 %if !%{with x}
 ExclusiveArch:
@@ -39,7 +38,7 @@ terminate.
 cp %{SOURCE1001} .
 
 %build
-%autogen --with-xinitdir=%{_sysconfdir}/X11/xinit/ CFLAGS="${CFLAGS} -D_F_EXIT_AFTER_XORG_AND_XCLIENT_LAUNCHED_ "
+%autogen --with-xinitdir=%{_sysconfdir}/X11/xinit/ CFLAGS="${CFLAGS} -D_F_EXIT_AFTER_XORG_AND_XCLIENT_LAUNCHED_ -D_F_LAUNCH_WM_AFTER_LAUNCHING_SERVER_ "
 make %{?_smp_mflags}
 
 %install
